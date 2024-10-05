@@ -1,8 +1,11 @@
 .header {
   height: 34vw;
   margin: 30px auto;
-  background: url("/header_img.png") no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)),
+    url("../../assets/header_banner.png") no-repeat;
   background-size: contain;
+
+  border-radius: 50px;
   position: relative;
 }
 .header-contents {
@@ -35,24 +38,20 @@
   border-radius: 50px;
 }
 
-@media( max-width:1050px){
-  
-  .header-contents{
+@media (max-width: 1050px) {
+  .header-contents {
     max-width: 45%;
-
   }
 }
 
-@media( max-width:750px){
- 
-  .header-contents{
+@media (max-width: 750px) {
+  .header-contents {
     max-width: 65%;
-
   }
-  .header-contents p{
+  .header-contents p {
     display: none;
   }
-  .header-contents button{
+  .header-contents button {
     padding: 2vw, 4vw;
   }
 }
