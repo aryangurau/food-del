@@ -13,30 +13,37 @@ const LoginPopup = ({ setShowLogin }) => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false); // Loading state
+
+  const showHide = () => {
+    const currentPw = document.getElementById("myPassword");
+    currentPw.type = currentPw.type === "password" ? "text" : "password";
+  };
 
   const onChangeHandler = (event) => {
-    //extracting the name and value from the input events
-    const name = event.target.name;
-    const value = event.target.value;
-    setData((data) => ({ ...data, [name]: value }));
+    const { name, value } = event.target;
+    setData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const onLogin = async (event) => {
     event.preventDefault();
-    let newUrl = url;
-    if (currState === "Login") {
-      newUrl += "/api/user/login";
-    } else {
-      newUrl += "/api/user/register";
-    }
-    const response = await axios.post(newUrl, data);
-    if (response.data.success) {
-      setToken(response.data.token);
-      localStorage.setItem("token", response.data.token);
-      setShowLogin(false);
-    }
-    else{
-      alert(response.data.message)
+    setLoading(true); // Show spinner
+    let newUrl = currState === "Login" ? `${url}/api/user/login` : `${url}/api/user/register`;
+
+    try {
+      const response = await axios.post(newUrl, data);
+      if (response.data.success) {
+        setToken(response.data.token);
+        localStorage.setItem("token", response.data.token);
+        setShowLogin(false);
+      } else {
+        alert(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setLoading(false); // Hide spinner
     }
   };
 
@@ -45,17 +52,11 @@ const LoginPopup = ({ setShowLogin }) => {
       <form onSubmit={onLogin} className="login-popup-container">
         <div className="login-popup-title">
           <h2>{currState}</h2>
-          <img
-            onClick={() => setShowLogin(false)}
-            src={assets.cross_icon}
-            alt=""
-          />
+          <img onClick={() => setShowLogin(false)} src={assets.cross_icon} alt="" />
         </div>
 
         <div className="login-popup-inputs">
-          {currState == "Login" ? (
-            <></>
-          ) : (
+          {currState === "Sign Up" && (
             <input
               name="name"
               onChange={onChangeHandler}
@@ -78,26 +79,33 @@ const LoginPopup = ({ setShowLogin }) => {
             onChange={onChangeHandler}
             value={data.password}
             type="password"
+            id="myPassword"
             placeholder="Enter Password"
             required
           />
         </div>
-        <button type="submit">
-          {currState === "Sign Up" ? "Create account" : "Login"}
+
+        <div className="showhide">
+          <input type="checkbox" onClick={showHide} />
+          <p>show & hide</p>
+        </div>
+
+        <button type="submit" disabled={loading}>
+          {loading ? <div className="spinner"></div> : currState === "Sign Up" ? "Create account" : "Login"}
         </button>
+
         <div className="login-popup-condition">
           <input type="checkbox" required />
           <p>By continuing, I agree to the terms of use & privacy policy</p>
         </div>
+
         {currState === "Login" ? (
           <p>
-            Create a new account?{" "}
-            <span onClick={() => setCurrState("Sign Up")}>Click here</span>
+            Create a new account? <span onClick={() => setCurrState("Sign Up")}>Click here</span>
           </p>
         ) : (
           <p>
-            Already have an account?{" "}
-            <span onClick={() => setCurrState("Login")}>Login here</span>
+            Already have an account? <span onClick={() => setCurrState("Login")}>Login here</span>
           </p>
         )}
       </form>
