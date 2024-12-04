@@ -27,7 +27,7 @@ const Navbar = ({ setShowLogin }) => {
           onClick={() => setMenu("home")}
           className={menu === "home" ? "active" : ""}
         >
-          home
+          Home
         </Link>
         <a
           href="#explore-menu"
@@ -79,6 +79,7 @@ const Navbar = ({ setShowLogin }) => {
           </div>
         )}
       </div>
+      <hr/>
     </div>
   );
 };

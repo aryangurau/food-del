@@ -3,7 +3,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky; 
+   top: 0;
+  background-color: white;
+  z-index: 1;
 }
+
 .navbar .logo {
   width: 150px;
   height: 40px;
@@ -15,11 +20,13 @@
   gap: 20px;
   color: #49557e;
   font-size: 18px;
+  /* margin-left: 70px; */
 }
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 40px;
+  /* margin-left: 100px; */
 }
 .navbar button {
   background: transparent;
@@ -86,7 +93,7 @@
   color: tomato;
 }
 
-@media (max-width: 1050px) {
+@media (max-width: 1200px) {
   .navbar .logo {
     width: 140px;
   }
@@ -131,3 +138,4 @@
     display: none;
   }
 }
+
