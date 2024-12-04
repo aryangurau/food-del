@@ -1,7 +1,9 @@
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
 import validator from "validator";
+import { sendEmail } from "../utils/mailer.js";
+import { genOTP } from "../utils/token.js";
 
 //login user
 const loginUser = async (req, res) => {
@@ -27,7 +29,7 @@ const loginUser = async (req, res) => {
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "3d" });
 };
-//register user
+//register user with email sending
 const registerUser = async (req, res) => {
   const { name, password, email } = req.body;
   try {
@@ -55,6 +57,10 @@ const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Generating OTP for email verification
+    const otp = genOTP();
+
+    // Saving the new user
     const newUser = new userModel({
       name: name,
       email: email,
@@ -63,7 +69,22 @@ const registerUser = async (req, res) => {
 
     const user = await newUser.save();
     const token = createToken(user._id);
-    res.json({ success: true, token });
+    // Sending the OTP email
+    const htmlMessage = `
+     <h1>Welcome to Pathao Khaja!</h1>
+     <p>Hello ${name},</p>
+     <p>Thank you for registering. Start placing your order:</p>
+    
+     <p>If you didn't request this, please ignore this email.</p>
+   `;
+
+    await sendEmail({
+      to: email,
+      subject: "new user",
+      htmlMessage,
+    });
+
+    res.json({ success: true, message: "Registration successful" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error in controller" });
