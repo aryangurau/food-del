@@ -3,6 +3,8 @@ import logo from "./logo.png";
 import icon from "./icon.png";
 import header_img from "./header_img.png";
 import header_banner from "./header_banner.png";
+import retro from "./retro.png";
+import banner2 from "./banner2.png"
 import search_icon from "./search_icon.png";
 import menu_1 from "./menu_1.png";
 import menu_2 from "./menu_2.png";
@@ -63,11 +65,13 @@ import logout_icon from "./logout_icon.png";
 import parcel_icon from "./parcel_icon.png";
 
 export const assets = {
+  banner2,
   icon,
   logo,
   basket_icon,
   header_img,
   header_banner,
+  retro,
   search_icon,
   rating_starts,
   add_icon_green,
