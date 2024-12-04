@@ -1,6 +1,6 @@
 .login-popup {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   height: 100%;
   background-color: #00000090;
@@ -52,6 +52,11 @@ border-radius: 4px;
     cursor: pointer;
 
 }
+.login-popup-container button:hover{
+    color: whitesmoke;
+    background-color: rgb(228, 45, 12);
+
+}
 .login-popup-condition{
     display: flex;
     align-items: start;
@@ -66,3 +71,32 @@ border-radius: 4px;
     font-weight: 500;
     cursor: pointer;
 }
+.showhide{
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    margin-top: -15px;
+}
+.showhide input{
+    margin-top: 4px;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
