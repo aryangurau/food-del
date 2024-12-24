@@ -16,32 +16,33 @@ const FoodItem = ({ id, name, price, description, image }) => {
           src={url + "/images/" + image}
           alt=""
         />
-        {!cartItems[id] ? (
-          <img
-            className="add"
-            onClick={() => addToCart(id)}
-            src={assets.add_icon_white}
-            alt=""
-          />
-        ) : (
-          <div className="food-item-counter">
-            <img
-              onClick={() => {
+        {!cartItems?.[id] ? (
+    <img
+        className="add"
+        onClick={() => addToCart(id)}
+        src={assets.add_icon_white}
+        alt=""
+    />
+) : (
+    <div className="food-item-counter">
+        <img
+            onClick={() => {
                 removeFromCart(id);
-              }}
-              src={assets.remove_icon_red}
-              alt=""
-            />
-            <p>{cartItems[id]}</p>
-            <img
-              onClick={() => {
+            }}
+            src={assets.remove_icon_red}
+            alt=""
+        />
+        <p>{cartItems[id]}</p>
+        <img
+            onClick={() => {
                 addToCart(id);
-              }}
-              src={assets.add_icon_green}
-              alt=""
-            />
-          </div>
-        )}
+            }}
+            src={assets.add_icon_green}
+            alt=""
+        />
+    </div>
+)}
+
       </div>
       <div className="food-item-info">
         <div className="food-item-name-rating">

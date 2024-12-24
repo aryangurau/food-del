@@ -51,7 +51,19 @@
 .navbar-search-icon {
   position: relative;
 }
+.navbar-cart {
+  position: relative;
+}
 .navbar-search-icon .dot {
+  position: absolute;
+  min-width: 10px;
+  min-height: 10px;
+  background-color: tomato;
+  border-radius: 5px;
+  top: -8px;
+  right: -7px;
+}
+.navbar-cart .dot {
   position: absolute;
   min-width: 10px;
   min-height: 10px;
@@ -91,6 +103,51 @@
 }
 .nav-profile-dropdown li:hover{
   color: tomato;
+}
+
+.navbar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index:2;
+}
+
+.navbar-search-icon {
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+}
+
+.search-input-container {
+  position: absolute;
+  top: 55px;
+  transform: translateY(-50%);
+  left: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-search-input {
+  border: none;
+  outline: none;
+  padding: 5px;
+  width: 200px;
+}
+
+.search-btn {
+  border: none;
+  background-color: #ff6347;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
 @media (max-width: 1200px) {
