@@ -46,4 +46,47 @@ const removeFood = async (req, res) => {
     res.json({ success: false, message: "Error" });
   }
 };
-export { addFood, listFood, removeFood };
+
+// Search food items
+const searchFood = async (req, res) => {
+  const { query, category } = req.query;
+  try {
+    let searchCriteria = {};
+    if (query) searchCriteria.name = { $regex: query, $options: "i" };
+    if (category) searchCriteria.category = category;
+
+    const foods = await foodModel.find(searchCriteria);
+    res.json({ success: true, data: foods });
+  } catch (error) {
+    console.error("Error fetching food items:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+
+// const searchFood = async (req, res) => {
+//   try {
+//     const { query, category } = req.query;
+//     let searchCriteria = {};
+//     if (query) searchCriteria.name = { $regex: query, $options: "i" };
+//     if (category) searchCriteria.category = category;
+
+//     const foods = await foodModel.find(searchCriteria);
+//     console.log("Search Results:", foods);
+//     res.json({ success: true, data: foods });
+//   } catch (error) {
+//     console.error(error.message); // Log detailed error
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error. Please try again later.",
+//     });
+//   }
+// };
+
+
+
+
+
+
+export { addFood, listFood, removeFood, searchFood };
