@@ -1,0 +1,101 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    padding: 20px;
+  }
+  
+  .container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Three columns for alignment */
+    gap: 20px; /* Space between cards */
+    padding: 20px;
+  }
+  
+  .dashboard-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 14px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    height: 220px; /* Adjust height if needed */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  
+  .dashboard-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .dashboard-card p {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .dashboard-card a {
+    text-decoration: none;
+  color: #fff;
+  background-color: #007bff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  }
+  
+  .dashboard-card a:hover {
+    background-color: tomato;
+    text-decoration: none;
+  }
+  
+  /* Card Background Colors */
+  .bg-green {
+    background-color: #28a745;
+    color: #fff;
+  }
+  
+  .bg-red {
+    background-color: #d0091d;
+    color: #fff;
+  }
+  
+  .bg-tomato {
+    background-color: hsl(21, 98%, 46%);
+    color: #fff;
+  }
+  
+  .bg-blue {
+    background-color: #4258c9;
+    color: #fff;
+  }
+  
+  .bg-purple {
+    background-color: #6f42c1;
+    color: #fff;
+  }
+  
+  .bg-brown {
+    background-color: #f3bf03;
+    color: #fff;
+  }
+  
+
+  @media (max-width: 768px) {
+    .container {
+      grid-template-columns: repeat(2, 1fr); /* Switch to 2 columns */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .container {
+      grid-template-columns: 1fr; /* Stack vertically */
+    }
+  }
+  
