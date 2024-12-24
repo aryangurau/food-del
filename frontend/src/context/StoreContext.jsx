@@ -6,7 +6,7 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
-  const url = "https://food-del-e2zv.onrender.com";
+  const url = "http://localhost:4000";
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
 
@@ -40,20 +40,29 @@ const StoreContextProvider = (props) => {
     for (const item in cartItems) {
       if (cartItems[item] > 0) {
         let itemInfo = food_list.find((product) => product._id === item);
-        totalAmount += itemInfo.price * cartItems[item];
+        if (itemInfo) { // Check if itemInfo exists
+          totalAmount += itemInfo.price * cartItems[item];
+        } else {
+          console.warn(`Product with ID ${item} not found in food_list`);
+        }
       }
     }
     return totalAmount;
   };
- 
 
   //Fetching food list from database
   const fetchFoodList = async () => {
-    const response = await axios.get(url + "/api/food/list");
-    setFoodList(response.data.data);
+    try {
+      const response = await axios.get(url + "/api/food/list");
+      if (response.data.success) {
+        setFoodList(response.data.data);
+      } else {
+        console.error("Failed to fetch food list:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching food list:", error);
+    }
   };
-
-  
   const loadCartData = async (token) => {
     const response = await axios.post(
       url + "/api/cart/get",
@@ -62,6 +71,10 @@ const StoreContextProvider = (props) => {
     );
     setCartItems(response.data.cartData);
   };
+  // useEffect(() => {
+  //   console.log("cartItems:", cartItems);
+  //   console.log("food_list:", food_list);
+  // }, [cartItems, food_list]);
 
   useEffect(() => {
     async function loadData() {
