@@ -9,6 +9,7 @@ import LoginPopup from "./components/LoginPopup/LoginPopup";
 import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import SearchResults from "./components/SearchResult/SearchResults";
+import ChatComponent from "./components/ChatComponent/ChatComponent";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -27,6 +28,8 @@ const App = () => {
         </Routes>
       </div>
       <Footer />
+      {/* Chatbot */}
+      <ChatComponent />
     </>
   );
 };
