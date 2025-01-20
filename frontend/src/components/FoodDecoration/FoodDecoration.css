@@ -42,15 +42,42 @@
     width: 2px;
     height: 90px;
     background: linear-gradient(
-        45deg,
-        rgba(255, 107, 107, 0.8),
-        rgba(255, 217, 61, 0.8),
-        rgba(108, 92, 231, 0.8),
-        rgba(168, 230, 207, 0.8)
+        135deg,
+        #ff0000 0%,     /* Red */
+        #ff8800 10%,    /* Orange blend */
+        #ffff00 25%,    /* Yellow */
+        #00ff00 40%,    /* Green */
+        #00ffff 55%,    /* Cyan */
+        #0088ff 70%,    /* Light Blue */
+        #0000ff 85%,    /* Blue */
+        #ff00ff 100%    /* Magenta */
     );
-    background-size: 300% 300%;
-    animation: gradientShift 3s ease infinite;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    background-size: 400% 400%;
+    position: relative;
+    animation: 
+        mixRainbow 8s linear infinite,
+        colorPulse 4s ease-in-out infinite,
+        ropeScale 3s ease-in-out infinite;
+    box-shadow: 
+        0 0 15px rgba(255, 255, 255, 0.9),
+        0 0 25px rgba(255, 0, 255, 0.8),
+        0 0 35px rgba(0, 255, 255, 0.8);
+    transform-origin: top center;
+    z-index: 1;
+}
+
+.light-rope::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -2px;
+    right: -2px;
+    bottom: 0;
+    background: inherit;
+    filter: blur(4px);
+    opacity: 0.8;
+    mix-blend-mode: screen;
+    animation: colorMix 5s ease-in-out infinite;
 }
 
 .hanging-food {
@@ -119,15 +146,62 @@
     }
 }
 
-@keyframes gradientShift {
+@keyframes mixRainbow {
     0% {
         background-position: 0% 50%;
+        filter: hue-rotate(0deg);
     }
     50% {
         background-position: 100% 50%;
+        filter: hue-rotate(180deg);
     }
     100% {
         background-position: 0% 50%;
+        filter: hue-rotate(360deg);
+    }
+}
+
+@keyframes colorPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(255, 0, 255, 0.9),
+            0 0 30px rgba(0, 255, 255, 0.8),
+            0 0 40px rgba(255, 255, 0, 0.7);
+        filter: saturate(1.2) brightness(1.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 25px rgba(0, 255, 255, 0.9),
+            0 0 35px rgba(255, 255, 0, 0.8),
+            0 0 45px rgba(255, 0, 255, 0.7);
+        filter: saturate(1.5) brightness(1.2);
+    }
+}
+
+@keyframes colorMix {
+    0%, 100% {
+        opacity: 0.8;
+        filter: blur(4px) hue-rotate(0deg);
+        mix-blend-mode: screen;
+    }
+    33% {
+        opacity: 0.9;
+        filter: blur(5px) hue-rotate(120deg);
+        mix-blend-mode: overlay;
+    }
+    66% {
+        opacity: 0.85;
+        filter: blur(4px) hue-rotate(240deg);
+        mix-blend-mode: color-dodge;
+    }
+}
+
+@keyframes ropeScale {
+    0%, 100% {
+        transform: scaleY(1) scaleX(1);
+    }
+    50% {
+        transform: scaleY(1.05) scaleX(1.1);
     }
 }
 
