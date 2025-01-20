@@ -40,12 +40,12 @@ const StoreContextProvider = (props) => {
   const url = "http://localhost:4000";
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [food_list, setFoodList] = useState([]);
-  const [user, setUser] = useState(null); // Add state for user info
+  const [user, setUser] = useState(null);
 
   const fetchUserFromToken = () => {
     if (token) {
       try {
-        const decodedToken = jwtDecode(token); // Decode token to get user details
+        const decodedToken = jwtDecode(token);
         setUser({
           id: decodedToken.id,
           name: decodedToken.name,
@@ -56,20 +56,25 @@ const StoreContextProvider = (props) => {
       }
     }
   };
+
   useEffect(() => {
     if (token) {
-      fetchUserFromToken(); // Decode token and set user on initial load
+      fetchUserFromToken();
     }
   }, [token]);
+
   const addToCart = async (itemId) => {
     const item = food_list.find(item => item._id === itemId);
-    if (!cartItems[itemId]) {
+    
+    // Initialize or increment cart item
+    if (!cartItems[itemId] || cartItems[itemId] <= 0) {
       setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
       toast.success(getRandomMessage('add', item.name));
     } else {
       setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
       toast.success(getRandomMessage('addMore', item.name));
     }
+
     if (token) {
       try {
         await axios.post(
@@ -82,19 +87,35 @@ const StoreContextProvider = (props) => {
       }
     }
   };
+
   const removeFromCart = async (itemId) => {
     const item = food_list.find(item => item._id === itemId);
-    if (cartItems[itemId] === 1) {
-      toast(getRandomMessage('remove', item.name), {
-        icon: '🗑️',
-        style: {
-          background: '#ef444415',
-          border: '2px solid #ef4444',
-          color: '#ef4444',
-        },
-      });
+    
+    // Check if item exists in cart
+    if (!cartItems[itemId]) {
+      return;
     }
-    setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+
+    // Decrease quantity
+    setCartItems((prev) => {
+      const newCart = { ...prev };
+      if (newCart[itemId] > 1) {
+        newCart[itemId] -= 1;
+      } else {
+        delete newCart[itemId]; // Remove item if quantity would be 0
+        toast(getRandomMessage('remove', item.name), {
+          icon: '🗑️',
+          style: {
+            background: '#ef444415',
+            border: '2px solid #ef4444',
+            color: '#ef4444',
+          },
+        });
+      }
+      return newCart;
+    });
+
+    // Sync with backend
     if (token) {
       try {
         await axios.post(
@@ -125,7 +146,7 @@ const StoreContextProvider = (props) => {
     for (const item in cartItems) {
       if (cartItems[item] > 0) {
         let itemInfo = food_list.find((product) => product._id === item);
-        if (itemInfo) { // Check if itemInfo exists
+        if (itemInfo) { 
           totalAmount += itemInfo.price * cartItems[item];
         } else {
           console.warn(`Product with ID ${item} not found in food_list`);
@@ -156,11 +177,6 @@ const StoreContextProvider = (props) => {
     );
     setCartItems(response.data.cartData);
   };
-  // useEffect(() => {
-  //   console.log("cartItems:", cartItems);
-  //   console.log("food_list:", food_list);
-  // }, [cartItems, food_list]);
-
   useEffect(() => {
     async function loadData() {
       await fetchFoodList();

@@ -22,7 +22,7 @@ const App = () => {
         reverseOrder={false}
         gutter={8}
         containerStyle={{
-          top: 20,
+          top: 80,
           right: 20,
         }}
         toastOptions={{

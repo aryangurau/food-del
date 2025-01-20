@@ -15,6 +15,14 @@ const Header = () => {
     setShowMenu(false);
   };
 
+  const handleAddToCart = (itemId) => {
+    addToCart(itemId);
+  };
+
+  const handleRemoveFromCart = (itemId) => {
+    removeFromCart(itemId);
+  };
+
   return (
     <div className="header">
       <div className="slider">
@@ -56,28 +64,32 @@ const Header = () => {
                 <div key={item._id} className="menu-item">
                   <div className="menu-item-img-container">
                     <img src={url + "/images/" + item.image} alt={item.name} />
-                    {!cartItems?.[item._id] ? (
-                      <img
-                        className="add"
-                        onClick={() => addToCart(item._id)}
-                        src={assets.add_icon_white}
-                        alt=""
-                      />
-                    ) : (
-                      <div className="food-item-counter">
+                    <div className="food-item-controls">
+                      {!cartItems[item._id] ? (
                         <img
-                          onClick={() => removeFromCart(item._id)}
-                          src={assets.remove_icon_red}
-                          alt=""
+                          className="add"
+                          onClick={() => handleAddToCart(item._id)}
+                          src={assets.add_icon_white}
+                          alt="Add to cart"
                         />
-                        <p>{cartItems[item._id]}</p>
-                        <img
-                          onClick={() => addToCart(item._id)}
-                          src={assets.add_icon_green}
-                          alt=""
-                        />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="food-item-counter">
+                          <img
+                            onClick={() => handleRemoveFromCart(item._id)}
+                            src={assets.remove_icon_red}
+                            alt="Remove"
+                            className="counter-button"
+                          />
+                          <p>{cartItems[item._id]}</p>
+                          <img
+                            onClick={() => handleAddToCart(item._id)}
+                            src={assets.add_icon_green}
+                            alt="Add"
+                            className="counter-button"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="menu-item-info">
                     <h3>{item.name}</h3>
