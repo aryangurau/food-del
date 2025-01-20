@@ -1,0 +1,252 @@
+.food-decoration {
+    position: absolute;
+    width: 100%;
+    height: 0;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+}
+
+/* Hanging Foods Styles */
+.hanging-foods {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    max-width: 1400px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 100px;
+}
+
+.food-string {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: swing 4s ease-in-out infinite;
+    transform-origin: top center;
+    margin: 0 20px;
+}
+
+.string-1 { animation-delay: 0s; }
+.string-2 { animation-delay: 0.5s; }
+.string-3 { animation-delay: 1s; }
+.string-4 { animation-delay: 1.5s; }
+
+.light-rope {
+    width: 2px;
+    height: 90px;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 107, 107, 0.8),
+        rgba(255, 217, 61, 0.8),
+        rgba(108, 92, 231, 0.8),
+        rgba(168, 230, 207, 0.8)
+    );
+    background-size: 300% 300%;
+    animation: gradientShift 3s ease infinite;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.hanging-food {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+    transform-origin: top center;
+    mix-blend-mode: multiply;
+    opacity: 0.9;
+}
+
+.food-string:hover .hanging-food {
+    opacity: 1;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+/* Decorative Lights */
+.decorative-lights {
+    position: absolute;
+    top: -15px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.light-bulb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    position: relative;
+    animation: glow 2s ease-in-out infinite;
+}
+
+.bulb-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0) 70%
+    );
+    filter: blur(2px);
+}
+
+/* Animations */
+@keyframes swing {
+    0%, 100% {
+        transform: rotate(3deg);
+    }
+    50% {
+        transform: rotate(-3deg);
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 
+            0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 15px #ff6b6b,
+            0 0 20px #ff6b6b,
+            0 0 25px #ff6b6b;
+    }
+    50% {
+        box-shadow: 
+            0 0 10px #fff,
+            0 0 20px #fff,
+            0 0 30px #ffd93d,
+            0 0 40px #ffd93d,
+            0 0 50px #ffd93d;
+    }
+}
+
+/* Food-specific animations */
+.burger {
+    animation: float 6s ease-in-out infinite;
+}
+
+.pizza {
+    animation: spin 8s linear infinite;
+}
+
+.momo {
+    animation: bounce 4s ease-in-out infinite;
+}
+
+.chicken {
+    animation: wobble 5s ease-in-out infinite;
+}
+
+.salad {
+    animation: bounce 4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes wobble {
+    0%, 100% {
+        transform: rotate(-3deg);
+    }
+    50% {
+        transform: rotate(3deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .hanging-foods {
+        padding: 0 50px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .hanging-foods {
+        padding: 0 30px;
+    }
+
+    .hanging-food {
+        width: 60px;
+        height: 60px;
+    }
+
+    .light-rope {
+        height: 80px;
+    }
+}
+
+@media (max-width: 992px) {
+    .hanging-foods {
+        padding: 0 20px;
+    }
+
+    .hanging-food {
+        width: 50px;
+        height: 50px;
+    }
+
+    .light-rope {
+        height: 70px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hanging-foods,
+    .decorative-lights {
+        display: none;
+    }
+}

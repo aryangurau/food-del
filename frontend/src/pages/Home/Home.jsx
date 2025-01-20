@@ -1,24 +1,21 @@
-import { useState } from "react";
-import ExploreMenu from "../../components/ExploreMenu/ExploreMenu";
+import React, { useState } from "react";
 import Header from "../../components/Header/Header";
+import ExploreMenu from "../../components/ExploreMenu/ExploreMenu";
 import "./Home.css";
 import FoodDisplay from "../../components/FoodDisplay/FoodDisplay";
 import AppDownload from "../../components/AppDownload/AppDownload";
 
 const Home = () => {
-
-    const[category, setCategory] = useState("All");     //by default display all the food items 
-
+  const [category, setCategory] = useState("All");
 
   return (
     <div>
       <Header />
       <ExploreMenu category={category} setCategory={setCategory}/>
-   <FoodDisplay category={category}/>
-   <AppDownload/>
-   
+      <FoodDisplay category={category}/>
+      <AppDownload/>
     </div>
   );
-};
+}
 
 export default Home;
