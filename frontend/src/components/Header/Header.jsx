@@ -1,11 +1,18 @@
-
-import { assets } from "../../assets/assets";
+import { useState } from "react";
+import { assets, food_list } from "../../assets/assets";
 import "./Header.css";
 
 const Header = () => {
-  const menu = () => {
-    alert("menu is under maintenance");
+  const [showMenu, setShowMenu] = useState(false);
+
+  const handleMenu = () => {
+    setShowMenu(true);
   };
+
+  const handleCloseMenu = () => {
+    setShowMenu(false);
+  };
+
   return (
     <div className="header">
       <div className="slider">
@@ -13,28 +20,47 @@ const Header = () => {
           {/* Slide 1 */}
           <div className="slide">
             <img src={assets.retro} alt="" />
-           
           </div>
           {/* Slide 2 */}
           <div className="slide">
-          <img src={assets.banner2} alt="" />
+            <img src={assets.banner2} alt="" />
           </div>
           {/* Slide 3 */}
           <div className="slide">
-          <img src={assets.header_banner} alt="" />
-           
+            <img src={assets.header_banner} alt="" />
           </div>
         </div>
       </div>
 
       <div className="header-contents">
-        <h2>Order your favourite food here</h2>
+        <h2>Your Perfect Meal is Just a Click Away</h2>
         <p>
-          Choose from a diverse menu featuring a delectable array of dishes
-          crafter with the finest ingredients
+          Discover a wide variety of mouth-watering dishes created using carefully
+          sourced ingredients
         </p>
-        <button onClick={menu}>View Menu</button>
+        <button onClick={handleMenu}>View Menu</button>
       </div>
+
+      {/* Menu Popup */}
+      {showMenu && (
+        <div className="menu-overlay">
+          <div className="menu-popup">
+            <div className="menu-header">
+              <h2>Our Menu</h2>
+              <button className="close-btn" onClick={handleCloseMenu}>×</button>
+            </div>
+            <div className="menu-items">
+              {food_list.map((item, index) => (
+                <div key={index} className="menu-item">
+                  <img src={item.image} alt={item.name} />
+                  <h3>{item.name}</h3>
+                  <p className="price">₹{item.price.toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

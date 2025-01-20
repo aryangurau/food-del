@@ -1,12 +1,61 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  cursor: url('./assets/pizza-cursor.svg') 16 16, auto !important;
+}
+
 * {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
   font-family: Outfit;
   scroll-behavior: smooth;
+  cursor: url('./assets/pizza-cursor.svg') 16 16, auto !important;
 }
+
+html,
+body {
+  cursor: url('./assets/pizza-cursor.svg') 16 16, auto !important;
+}
+
+/* For clickable elements */
+button,
+a,
+input[type="submit"],
+input[type="button"],
+select,
+input[type="checkbox"],
+input[type="radio"],
+[role="button"],
+[tabindex="0"],
+.clickable {
+  cursor: url('./assets/pizza-cursor.svg') 16 16, pointer !important;
+}
+
+/* For text inputs */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea {
+  cursor: url('./assets/pizza-cursor.svg') 16 16, text !important;
+}
+
+/* For disabled elements */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.disabled {
+  cursor: url('./assets/pizza-cursor.svg') 16 16, not-allowed !important;
+}
+
 body {
   min-height: 100vh;
 }

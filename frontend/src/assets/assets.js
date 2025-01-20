@@ -63,16 +63,26 @@ import profile_icon from "./profile_icon.png";
 import bag_icon from "./bag_icon.png";
 import logout_icon from "./logout_icon.png";
 import parcel_icon from "./parcel_icon.png";
+import pizza_cursor from "./pizza-cursor.svg";
 
 export const assets = {
-  banner2,
-  icon,
-  logo,
   basket_icon,
+  logo,
+  icon,
   header_img,
   header_banner,
   retro,
+  banner2,
   search_icon,
+  menu_1,
+  menu_2,
+  menu_3,
+  menu_4,
+  menu_5,
+  menu_6,
+  menu_7,
+  menu_8,
+  pizza_cursor,
   rating_starts,
   add_icon_green,
   add_icon_white,
