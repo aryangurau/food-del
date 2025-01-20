@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 // import { food_list } from "../assets/assets";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export const StoreContext = createContext(null);
 
@@ -10,7 +11,26 @@ const StoreContextProvider = (props) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   // const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
+  const [user, setUser] = useState(null); // Add state for user info
 
+  const fetchUserFromToken = () => {
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token); // Decode token to get user details
+        setUser({
+          id: decodedToken.id,
+          name: decodedToken.name,
+        });
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+      }
+    }
+  };
+  useEffect(() => {
+    if (token) {
+      fetchUserFromToken(); // Decode token and set user on initial load
+    }
+  }, [token]);
   const addToCart = async (itemId) => {
     if (!cartItems[itemId]) {
       setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
@@ -99,6 +119,7 @@ const StoreContextProvider = (props) => {
     url,
     token,
     setToken,
+    user, 
   };
   return (
     <StoreContext.Provider value={contextValue}>
