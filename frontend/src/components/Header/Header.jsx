@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { assets, food_list } from "../../assets/assets";
+import { useState, useContext } from "react";
+import { assets } from "../../assets/assets";
+import { StoreContext } from "../../context/StoreContext";
 import "./Header.css";
 
 const Header = () => {
   const [showMenu, setShowMenu] = useState(false);
+  const { cartItems, addToCart, removeFromCart, food_list, url } = useContext(StoreContext);
 
   const handleMenu = () => {
     setShowMenu(true);
@@ -50,11 +52,37 @@ const Header = () => {
               <button className="close-btn" onClick={handleCloseMenu}>×</button>
             </div>
             <div className="menu-items">
-              {food_list.map((item, index) => (
-                <div key={index} className="menu-item">
-                  <img src={item.image} alt={item.name} />
-                  <h3>{item.name}</h3>
-                  <p className="price">₹{item.price.toFixed(2)}</p>
+              {food_list.map((item) => (
+                <div key={item._id} className="menu-item">
+                  <div className="menu-item-img-container">
+                    <img src={url + "/images/" + item.image} alt={item.name} />
+                    {!cartItems?.[item._id] ? (
+                      <img
+                        className="add"
+                        onClick={() => addToCart(item._id)}
+                        src={assets.add_icon_white}
+                        alt=""
+                      />
+                    ) : (
+                      <div className="food-item-counter">
+                        <img
+                          onClick={() => removeFromCart(item._id)}
+                          src={assets.remove_icon_red}
+                          alt=""
+                        />
+                        <p>{cartItems[item._id]}</p>
+                        <img
+                          onClick={() => addToCart(item._id)}
+                          src={assets.add_icon_green}
+                          alt=""
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="menu-item-info">
+                    <h3>{item.name}</h3>
+                    <p className="price">₹{item.price.toFixed(2)}</p>
+                  </div>
                 </div>
               ))}
             </div>

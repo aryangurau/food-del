@@ -229,35 +229,97 @@
 .menu-item {
   background: white;
   border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.3s ease;
 }
 
 .menu-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.menu-item img {
+.menu-item-img-container {
+  position: relative;
   width: 100%;
   height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.menu-item-img-container img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-.menu-item h3 {
-  padding: 15px;
-  margin: 0;
-  color: #333;
-  font-size: 18px;
+.menu-item-img-container .add {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
-.menu-item .price {
-  padding: 0 15px 15px;
+.menu-item-img-container .add:hover {
+  transform: scale(1.1);
+}
+
+.food-item-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: white;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.food-item-counter img {
+  width: 20px !important;
+  height: 20px !important;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.food-item-counter img:hover {
+  transform: scale(1.1);
+}
+
+.food-item-counter p {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
   margin: 0;
-  color: #e44d26;
-  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+
+.menu-item-info {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.menu-item-info h3 {
+  margin: 0;
   font-size: 18px;
+  color: #333;
+}
+
+.menu-item-info .price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ff4d4d;
+  margin: 0;
 }
 
 /* Custom Cursor */
