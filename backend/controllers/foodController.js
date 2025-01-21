@@ -2,23 +2,26 @@ import foodModel from "../models/foodModel.js";
 import fs from "fs";
 
 //add food item
-
 const addFood = async (req, res) => {
-  let image_filename = `${req?.file?.filename}`;
-
-  const food = new foodModel({
-    name: req.body.name,
-    description: req.body.description,
-    price: req.body.price,
-    category: req.body.category,
-    image: image_filename,
-  });
   try {
-    await food.save();
-    res.json({ success: true, message: "food Added" });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Image is required" });
+    }
+
+    const food = new foodModel({
+      name: req.body.name,
+      description: req.body.description,
+      price: Number(req.body.price),
+      category: req.body.category,
+      image: req.file.filename
+    });
+
+    const savedFood = await food.save();
+    console.log("Food saved successfully:", savedFood);
+    res.json({ success: true, message: "Food Added", data: savedFood });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error adding food:", error);
+    res.status(500).json({ success: false, message: "Error adding food item" });
   }
 };
 
@@ -37,6 +40,8 @@ const listFood = async (req, res) => {
       .limit(limit)
       .sort({ createdAt: -1 });
 
+    console.log("Foods fetched:", foods.length);
+    
     res.json({ 
       success: true, 
       data: foods,
@@ -48,65 +53,52 @@ const listFood = async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error listing food:", error);
+    res.status(500).json({ success: false, message: "Error listing food items" });
   }
 };
 
 // remove food item
 const removeFood = async (req, res) => {
   try {
-    const food = await foodModel.findById(req?.body?.id);
-    fs.unlink(`uploads/${food.image}`, () => {});
+    const food = await foodModel.findById(req.body.id);
+    if (!food) {
+      return res.status(404).json({ success: false, message: "Food not found" });
+    }
 
-    await foodModel.findByIdAndDelete(req?.body?.id);
+    // Delete the image file
+    fs.unlink(`uploads/${food.image}`, (err) => {
+      if (err) console.error("Error deleting image:", err);
+    });
+
+    await foodModel.findByIdAndDelete(req.body.id);
     res.json({ success: true, message: "Food removed" });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error removing food:", error);
+    res.status(500).json({ success: false, message: "Error removing food item" });
   }
 };
 
 // Search food items
 const searchFood = async (req, res) => {
-  const { query, category } = req.query;
   try {
+    const { query, category } = req.query;
     let searchCriteria = {};
-    if (query) searchCriteria.name = { $regex: query, $options: "i" };
-    if (category) searchCriteria.category = category;
+    
+    if (query) {
+      searchCriteria.name = { $regex: query, $options: "i" };
+    }
+    if (category) {
+      searchCriteria.category = category;
+    }
 
     const foods = await foodModel.find(searchCriteria);
+    console.log("Search results:", foods.length);
     res.json({ success: true, data: foods });
   } catch (error) {
-    console.error("Error fetching food items:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error searching food:", error);
+    res.status(500).json({ success: false, message: "Error searching food items" });
   }
 };
-
-
-
-// const searchFood = async (req, res) => {
-//   try {
-//     const { query, category } = req.query;
-//     let searchCriteria = {};
-//     if (query) searchCriteria.name = { $regex: query, $options: "i" };
-//     if (category) searchCriteria.category = category;
-
-//     const foods = await foodModel.find(searchCriteria);
-//     console.log("Search Results:", foods);
-//     res.json({ success: true, data: foods });
-//   } catch (error) {
-//     console.error(error.message); // Log detailed error
-//     res.status(500).json({
-//       success: false,
-//       message: "Server error. Please try again later.",
-//     });
-//   }
-// };
-
-
-
-
-
 
 export { addFood, listFood, removeFood, searchFood };
