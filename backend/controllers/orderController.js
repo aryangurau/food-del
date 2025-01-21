@@ -103,11 +103,32 @@ const userOrders = async (req, res) => {
 
 const listOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({});
-    res.json({ success: true, data: orders });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalItems = await orderModel.countDocuments({});
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const orders = await orderModel.find({})
+      .populate('userId', 'name email')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    res.json({ 
+      success: true, 
+      data: orders,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit
+      }
+    });
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: "Error from list orders" });
+    res.json({ success: false, message: "Error" });
   }
 };
 
@@ -120,7 +141,7 @@ const updateStatus = async (req, res) => {
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.log(error);
-    res.josn({ success: false, message: "Error" });
+    res.json({ success: false, message: "Error" });
   }
 };
 

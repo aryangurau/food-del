@@ -25,8 +25,28 @@ const addFood = async (req, res) => {
 // all food list
 const listFood = async (req, res) => {
   try {
-    const foods = await foodModel.find({});
-    res.json({ success: true, data: foods });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalItems = await foodModel.countDocuments({});
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const foods = await foodModel.find({})
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    res.json({ 
+      success: true, 
+      data: foods,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit
+      }
+    });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });
