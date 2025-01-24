@@ -19,15 +19,17 @@ const port = process.env.PORT || 4000;
 
 // Create HTTP server for socket support
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*", // Adjust this to allow requests from the frontend
-  },
-});
+
+// Configure CORS
+const corsOptions = {
+  origin: ["http://localhost:5173", "http://localhost:5174"], // Allow both frontend and admin
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+};
 
 // Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors());
 
 // DB connection
 connectDB();
@@ -41,6 +43,11 @@ app.use("/api/order", orderRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working");
+});
+
+// Configure Socket.IO with CORS
+const io = new Server(server, {
+  cors: corsOptions
 });
 
 // Socket.IO for chatbot

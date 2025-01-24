@@ -123,4 +123,76 @@ const registerUser = async (req, res) => {
 };
 
 
-export { loginUser, registerUser };
+// Get all users with pagination
+const getUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalUsers = await userModel.countDocuments();
+    const users = await userModel
+      .find({}, { password: 0, token: 0 }) // Exclude sensitive data
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: users,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / limit),
+        totalItems: totalUsers,
+        itemsPerPage: limit
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error fetching users" });
+  }
+};
+
+// Delete user
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findByIdAndDelete(id);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error deleting user" });
+  }
+};
+
+// Update user status (block/unblock)
+const updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { blocked } = req.body;
+    
+    const user = await userModel.findByIdAndUpdate(
+      id,
+      { blocked },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `User ${blocked ? 'blocked' : 'unblocked'} successfully`,
+      user
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error updating user status" });
+  }
+};
+
+export { loginUser, registerUser, getUsers, deleteUser, updateUserStatus };
