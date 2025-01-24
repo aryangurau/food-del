@@ -1,3 +1,28 @@
+.navbar-notification {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-notification a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #49557e;
+}
+
+.notification-icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notification-icon:hover {
+  transform: scale(1.1);
+  color: tomato;
+}
+
 .navbar-container {
     position: sticky;
     top: 0;
@@ -553,6 +578,39 @@
 
   .navbar button:hover {
     background-color: #ffe4e0;
+  }
+
+  /* Mobile Notification */
+  .navbar-notification {
+    width: 100%;
+  }
+
+  .navbar-notification a {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #49557e;
+    padding: 12px 15px;
+    background-color: #fff4f2;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .navbar-notification a:hover {
+    background-color: #ffe4e0;
+    color: tomato;
+  }
+
+  .navbar-notification a::after {
+    content: 'Notifications';
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .notification-icon {
+    width: 20px;
+    height: 20px;
   }
 }
 
