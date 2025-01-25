@@ -35,7 +35,7 @@
 .navbar {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 15px 20px;
+    padding: 15px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -47,6 +47,7 @@
 .navbar .logo {
   width: 150px;
   height: 40px;
+  padding-left: 0;
 }
 
 .navbar-menu {
@@ -55,6 +56,8 @@
   gap: 20px;
   color: #49557e;
   font-size: 18px;
+  margin-right: auto;
+  margin-left: 40px;
 }
 
 .navbar-right {
@@ -62,6 +65,8 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  padding-right: 0;
+  margin-left: auto;
 }
 
 .navbar button {
