@@ -1,143 +1,198 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Orders.css";
 import axios from "axios";
-import { toast } from "react-toastify";
-import { useEffect } from "react";
-import { assets } from "../../assets/assets";
+import { toast } from "react-hot-toast";
+import { FaBox, FaSpinner } from 'react-icons/fa';
+import { useAdminAuth } from "../../context/AdminAuthContext";
 
 const Orders = ({ url }) => {
+  const { adminToken } = useAdminAuth();
   const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 10
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchAllOrders = async (page = 1) => {
-    const response = await axios.get(`${url}/api/order/list?page=${page}&limit=10`);
-    if (response.data.success) {
-      setOrders(response.data.data);
-      setPagination(response.data.pagination);
-    } else {
-      toast.error("Error");
+  const fetchAllOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `${url}/api/admin/orders`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'token': adminToken
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        setOrders(response.data.data || []);
+      } else {
+        throw new Error(response.data.message || "Failed to fetch orders");
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setError(error.message || "Failed to fetch orders");
+      toast.error(error.message || "Failed to fetch orders");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const statusHandler = async (event, orderId) => {
-    const response = await axios.post(url + "/api/order/status", {
-      orderId,
-      status: event.target.value,
-    });
-    if (response.data.success) {
-      await fetchAllOrders(currentPage);
+  useEffect(() => {
+    fetchAllOrders();
+  }, [url, adminToken]);
+
+  const statusHandler = async (e, orderId) => {
+    const newStatus = e.target.value;
+    try {
+      const response = await axios.put(
+        `${url}/api/admin/orders/${orderId}`,
+        { status: newStatus },
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'token': adminToken
+          }
+        }
+      );
+
+      if (response.data.success) {
+        setOrders(orders.map(order => 
+          order._id === orderId 
+            ? response.data.data
+            : order
+        ));
+        toast.success("Order status updated successfully");
+      } else {
+        throw new Error(response.data.message || "Failed to update order status");
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      toast.error(error.response?.data?.message || error.message || "Failed to update order status");
     }
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    fetchAllOrders(page);
+  const formatDate = (dateString) => {
+    const options = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
   const formatAddress = (address) => {
-    if (!address) return "No address provided";
+    if (!address) return <p>No address available</p>;
     
-    const {
-      firstName,
-      lastName,
-      street,
-      city,
-      state,
-      zipcode,
-      country,
-      phone
-    } = address;
-
     return (
       <div className="address-details">
-        <p className="customer-name">{firstName} {lastName}</p>
-        <p className="street">{street}</p>
-        <p className="city-state">{city}, {state} {zipcode}</p>
-        <p className="country">{country}</p>
-        <p className="phone">{phone}</p>
+        <p><strong>Name:</strong> {address.name || 'N/A'}</p>
+        <p><strong>Phone:</strong> {address.phone || 'N/A'}</p>
+        <p><strong>Street:</strong> {address.street || 'N/A'}</p>
+        <p><strong>City:</strong> {address.city || 'N/A'}</p>
+        <p><strong>State:</strong> {address.state || 'N/A'}</p>
+        <p><strong>Country:</strong> {address.country || 'N/A'}</p>
       </div>
     );
   };
 
-  useEffect(() => {
-    fetchAllOrders(1);
-  }, []);
+  if (loading) {
+    return (
+      <div className="orders loading">
+        <FaSpinner className="spinner" />
+        <p>Loading orders...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="orders error">
+        <div className="error-message">
+          <h3>Error Loading Orders</h3>
+          <p>{error}</p>
+          <button onClick={fetchAllOrders}>Try Again</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="order add">
-      <h3>Order Page</h3>
-      <div className="order-list">
-        {orders.map((order, index) => (
-          <div key={index} className="order-item">
-            <img src={assets.parcel_icon} alt="" />
+    <div className="orders">
+      <div className="orders-header">
+        <h2>Orders Management</h2>
+        <p>Total Orders: {orders.length}</p>
+      </div>
+
+      <div className="orders-list">
+        {orders.map((order) => (
+          <div key={order._id} className={`order-item ${(order.status || '').toLowerCase()}`}>
+            <div className="order-icon">
+              <FaBox />
+            </div>
+            
             <div className="order-details">
-              <p className="order-item-food">
-                {order.items.map((item, index) => {
-                  if (index === order.items.length - 1) {
-                    return item.name + " X " + item.quantity;
-                  } else {
-                    return item.name + " X " + item.quantity + ", ";
-                  }
-                })}
-              </p>
-              <p className="order-amount">Order Total: ${order.amount}</p>
-              {formatAddress(order.address)}
+              <div className="order-header">
+                <span className="order-id">Order #{order._id?.slice(-6) || 'N/A'}</span>
+                <span className={`order-status ${(order.status || '').toLowerCase()}`}>
+                  {order.status || 'N/A'}
+                </span>
+              </div>
+
+              <div className="order-info">
+                <div className="info-group">
+                  <h4>Order Details</h4>
+                  <p><strong>Amount:</strong> ₹{(order.total || 0).toLocaleString()}</p>
+                  <p><strong>Date:</strong> {formatDate(order.createdAt)}</p>
+                  <p><strong>Payment:</strong> {order.paymentStatus || 'N/A'}</p>
+                </div>
+
+                <div className="info-group">
+                  <h4>Customer Details</h4>
+                  <div className="customer-info">
+                    <p><strong>Name:</strong> {order.address?.name || 'N/A'}</p>
+                    <p><strong>Phone:</strong> {order.address?.phone || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="info-group">
+                  <h4>Delivery Address</h4>
+                  {formatAddress(order.address)}
+                </div>
+              </div>
+
+              <div className="order-items">
+                <h4>Order Items</h4>
+                <div className="items-list">
+                  {(order.items || []).map((item, index) => (
+                    <span key={index} className="item">
+                      {item.name || 'Unknown'} × {item.quantity || 0}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               <div className="status-container">
-                <p>Status:</p>
+                <p>Update Status:</p>
                 <select
-                  defaultValue={order.status}
+                  value={order.status || ''}
                   onChange={(e) => statusHandler(e, order._id)}
+                  className={order.status?.toLowerCase() || ''}
                 >
+                  <option value="pending">Pending</option>
                   <option value="preparing">Preparing</option>
                   <option value="prepared">Prepared</option>
                   <option value="ontheway">On the way</option>
                   <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Pagination Controls */}
-      <div className="pagination">
-        <button 
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="pagination-button"
-        >
-          Previous
-        </button>
-        
-        <div className="pagination-numbers">
-          {[...Array(pagination.totalPages)].map((_, index) => (
-            <button
-              key={index + 1}
-              onClick={() => handlePageChange(index + 1)}
-              className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
-            >
-              {index + 1}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === pagination.totalPages}
-          className="pagination-button"
-        >
-          Next
-        </button>
-      </div>
-
-      <div className="pagination-info">
-        Showing {((currentPage - 1) * pagination.itemsPerPage) + 1} to {Math.min(currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} orders
       </div>
     </div>
   );

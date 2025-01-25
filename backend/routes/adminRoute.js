@@ -76,6 +76,28 @@ adminRouter.get("/orders", async (req, res) => {
   }
 });
 
+adminRouter.put("/orders/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const order = await orderModel.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    res.json({ success: true, data: order });
+  } catch (error) {
+    console.error("Order update error:", error);
+    res.status(500).json({ success: false, message: "Failed to update order" });
+  }
+});
+
 // User management endpoints
 adminRouter.get("/users", async (req, res) => {
   try {
