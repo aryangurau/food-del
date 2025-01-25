@@ -4,33 +4,59 @@ import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { assets } from "../../assets/assets";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const MyOrders = () => {
   const { url, token } = useContext(StoreContext);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [trackingId, setTrackingId] = useState(null);
+  const navigate = useNavigate();
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
       const response = await axios.post(
-        url + "/api/order/userorders",
+        `${url}/api/order/userorders`,
         {},
-        { headers: { token } }
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'token': token 
+          }
+        }
       );
-      setData(response.data.data);
+
+      if (response.data.success) {
+        setOrders(response.data.data);
+      } else {
+        toast.error(response.data.message || "Failed to fetch orders");
+      }
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast.error("Failed to fetch orders");
+      if (error.response?.status === 401) {
+        toast.error("Please login to view your orders");
+        navigate("/login");
+      } else {
+        toast.error("Failed to fetch orders");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const trackOrder = async (orderId) => {
     try {
-      setLoading(true);
+      setTrackingId(orderId);
       const response = await axios.post(
-        url + "/api/order/track",
+        `${url}/api/order/track`,
         { orderId },
-        { headers: { token } }
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'token': token 
+          }
+        }
       );
       
       if (response.data.success) {
@@ -43,49 +69,72 @@ const MyOrders = () => {
       console.error("Error tracking order:", error);
       toast.error("Failed to track order");
     } finally {
-      setLoading(false);
+      setTrackingId(null);
     }
   };
 
   useEffect(() => {
-    if (token) {
+    if (!token) {
+      toast.error("Please login to view your orders");
+      navigate("/login");
+    } else {
       fetchOrders();
     }
-  }, [token]);
+  }, [token, navigate]);
+
+  if (loading) {
+    return (
+      <div className="my-orders">
+        <h2>My Orders</h2>
+        <div className="loading-spinner">Loading orders...</div>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="my-orders">
+        <h2>My Orders</h2>
+        <div className="no-orders">
+          <p>You haven't placed any orders yet.</p>
+          <button onClick={() => navigate("/")}>Browse Menu</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="my-orders">
       <h2>My Orders</h2>
       <div className="container">
-        {data.map((order, index) => {
-          return (
-            <div className="my-orders-order" key={index}>
-              <img src={assets.parcel_icon} alt="" />
-              <p>
-                {order.items.map((item, index) => {
-                  if (index === order.items.length - 1) {
-                    return item.name + "×" + item.quantity;
-                  } else {
-                    return item.name + "×" + item.quantity + ", ";
-                  }
-                })}
+        {orders.map((order) => (
+          <div className="my-orders-order" key={order._id}>
+            <img src={assets.parcel_icon} alt="" />
+            <div className="order-details">
+              <p className="order-items">
+                {order.items.map((item, index) => (
+                  <span key={item._id}>
+                    {item.name} × {item.quantity}
+                    {index < order.items.length - 1 ? ", " : ""}
+                  </span>
+                ))}
               </p>
-              <p>${order.amount}.00</p>
-              <p>Items: {order.items.length}</p>
+              <p className="order-amount">Total: ${order.amount.toFixed(2)}</p>
+              <p className="order-count">Items: {order.items.length}</p>
               <p className={`status ${order.status.toLowerCase()}`}>
                 <span>●</span>
                 <b>{order.status}</b>
               </p>
-              <button 
-                onClick={() => trackOrder(order._id)}
-                disabled={loading}
-                className={loading ? "loading" : ""}
-              >
-                {loading ? "Tracking..." : "Track Order"}
-              </button>
             </div>
-          );
-        })}
+            <button 
+              onClick={() => trackOrder(order._id)}
+              disabled={trackingId === order._id}
+              className={trackingId === order._id ? "loading" : ""}
+            >
+              {trackingId === order._id ? "Tracking..." : "Track Order"}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

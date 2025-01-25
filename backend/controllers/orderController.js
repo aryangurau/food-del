@@ -9,93 +9,216 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const placeOrder = async (req, res) => {
   const frontend_url = "http://localhost:5173"; 
   try {
-    console.log("Request body:", req.body);
+    // Check if user exists in request
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated"
+      });
+    }
 
-    // Creating new order
-    const newOrder = new orderModel({
-      userId: req.body.userId,
-      items: req.body.items,
-      amount: req.body.amount,
-      address: req.body.address,
+    const { items, amount } = req.body;
+    const userId = req.user._id;
+
+    // Validate required fields
+    if (!items || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${[
+          !items && 'items',
+          !amount && 'amount'
+        ].filter(Boolean).join(', ')}`
+      });
+    }
+
+    // Validate items array
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Items must be a non-empty array"
+      });
+    }
+
+    // Validate each item has required fields
+    const itemValidation = items.every(item => {
+      const hasRequiredFields = item._id && item.name && 
+                              typeof item.price === 'number' && 
+                              typeof item.quantity === 'number';
+      return hasRequiredFields;
     });
 
-    console.log("Attempting to save new order:", newOrder);
+    if (!itemValidation) {
+      return res.status(400).json({
+        success: false,
+        message: "Each item must have _id, name, price, and quantity"
+      });
+    }
 
-    // Saving order in the database
-    await newOrder.save();
-    console.log("Order successfully saved to the database:", newOrder);
+    try {
+      // Create Stripe session first to ensure it works
+      const line_items = items.map((item) => ({
+        price_data: {
+          currency: "USD",
+          product_data: { 
+            name: `${item.name} (Qty: ${item.quantity})`
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: 1,
+      }));
 
-    // Cleaning user's cart data
-    const user = await userModel.findByIdAndUpdate(req.body.userId, {
-      cartData: {},
-    });
-    console.log("User cart cleared for user:", req.body.userId);
+      line_items.push({
+        price_data: {
+          currency: "USD",
+          product_data: { 
+            name: "Delivery Charges"
+          },
+          unit_amount: 200,
+        },
+        quantity: 1,
+      });
 
-    // Stripe payment
-    const line_items = req.body.items.map((item) => ({
-      price_data: {
-        currency: "USD",
-        product_data: { name: item.name },
-        unit_amount: item.price * 100, 
-      },
-      quantity: item.quantity,
-    }));
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items,
+        mode: "payment",
+        success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${frontend_url}/cancel`,
+        submit_type: 'pay',
+        payment_intent_data: {
+          metadata: {
+            userId: userId.toString()
+          }
+        }
+      });
 
-    line_items.push({
-      price_data: {
-        currency: "USD",
-        product_data: { name: "Delivery Charges" },
-        unit_amount: 2 * 100, 
-      },
-      quantity: 1,
-    });
+      // If Stripe session is created successfully, save the order
+      const newOrder = new orderModel({
+        userId,
+        items,
+        amount,
+        status: "pending"
+      });
 
-    console.log("Line items for Stripe payment:", line_items);
-    const success_url = `${frontend_url}/verify?success=true&orderId=${newOrder._id}`;
-    const cancel_url = `${frontend_url}/verify?success=false&orderId=${newOrder._id}`;
-    console.log("Success URL:", success_url);
-    console.log("Cancel URL:", cancel_url);
+      const savedOrder = await newOrder.save();
 
-    // Creating Stripe session
-    const session = await stripe.checkout.sessions.create({
-      line_items: line_items,
-      mode: "payment",
-      success_url: success_url,
-      cancel_url: cancel_url,
-    });
+      // Clean user's cart data
+      await userModel.findByIdAndUpdate(userId, {
+        cartData: {},
+      });
 
-    // Sending session URL to the frontend
-    res.json({ success: true, session_url: session.url });
+      res.status(200).json({
+        success: true,
+        session_url: session.url,
+      });
+    } catch (stripeError) {
+      console.error("Stripe error:", stripeError);
+      return res.status(400).json({
+        success: false,
+        message: stripeError.message
+      });
+    }
   } catch (error) {
-    console.error("Error in placeOrder function:", error.message);
-    res.json({ success: false, message: "Error in order controller" });
+    console.error("Error in placeOrder:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to place order",
+      error: error.message
+    });
   }
 };
 
 const verifyOrder = async (req, res) => {
-  const { orderId, success } = req?.body;
   try {
-    if (success === "true") {
-      await orderModel.findByIdAndUpdate(orderId, { payment: true });
-      res.json({ success: true, message: "Paid" });
-    } else {
-      await orderModel.findByIdAndDelete(orderId);
-      res.json({ success: false, message: "Not Paid" });
+    const { success, sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Session ID is required"
+      });
     }
+
+    // Retrieve the session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found"
+      });
+    }
+
+    // Get the userId from the payment intent metadata
+    const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
+    const userId = paymentIntent.metadata.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID not found in payment metadata"
+      });
+    }
+
+    // Find and update the pending order for this user
+    const order = await orderModel.findOneAndUpdate(
+      { userId, status: "pending" },
+      { status: success ? "confirmed" : "failed" },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: success ? "Payment verified successfully" : "Payment failed",
+      order
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Verify order error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify payment"
+    });
   }
 };
 
 // user orders for frontend
 const userOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({ userId: req.body.userId });
-    res.json({ success: true, data: orders });
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated"
+      });
+    }
+
+    const orders = await orderModel.find({ 
+      userId: req.user._id 
+    }).sort({ createdAt: -1 }); // Sort by newest first
+
+    if (!orders) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: orders 
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch orders" 
+    });
   }
 };
 

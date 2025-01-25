@@ -3,6 +3,7 @@ import axios from "axios";
 import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast'; // Import toast
 
 const PlaceOrder = () => {
   const { getTotalCartAmount, token, food_list, cartItems, url } =
@@ -25,36 +26,66 @@ const PlaceOrder = () => {
     setData((data) => ({ ...data, [name]: value }));
   };
 
-  const placeOrder = async (event) => {
-    event.preventDefault();
-    let orderItems = [];
-    food_list.map((item) => {
+  const placeOrder = async () => {
+    if (!token) {
+      toast.error("Please login to place an order");
+      navigate("/login");
+      return;
+    }
+
+    const orderItems = [];
+    food_list.forEach((item) => {
       if (cartItems[item._id] > 0) {
-        let itemInfo = item;
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo);
+        orderItems.push({
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: cartItems[item._id]
+        });
       }
     });
 
-    let orderData = {
-      address: data,
+    if (orderItems.length === 0) {
+      toast.error("Your cart is empty");
+      navigate("/cart");
+      return;
+    }
+
+    const totalAmount = getTotalCartAmount() + 2;
+    console.log("Order Items:", orderItems);
+    console.log("Total Amount:", totalAmount);
+
+    const orderData = {
       items: orderItems,
-      amount: getTotalCartAmount() + 2,
+      amount: totalAmount
     };
-    //sending the orderData to api
+
+    console.log("Sending order data:", orderData);
+    console.log("Using token:", token);
+
     try {
-      let response = await axios.post(url + "/api/order/place", orderData, {
-        headers: { token },
+      const response = await axios.post(`${url}/api/order/place`, orderData, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'token': token,
+          'Content-Type': 'application/json'
+        },
       });
-      console.log({ response });
+
+      console.log("Response received:", response.data);
+      
       if (response.data.success) {
         const { session_url } = response.data;
         window.location.replace(session_url);
       } else {
-        alert("Error");
+        toast.error(response.data.message || "Failed to place order");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error placing order:", error);
+      console.log("Error response:", error.response);
+      console.log("Error response data:", error.response?.data);
+      const errorMessage = error.response?.data?.message || "Failed to place order";
+      toast.error(errorMessage);
     }
   };
 
@@ -69,7 +100,7 @@ const PlaceOrder = () => {
   }, [token]);
 
   return (
-    <form onSubmit={placeOrder} className="place-order">
+    <form onSubmit={(e) => e.preventDefault()} className="place-order">
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">
@@ -173,7 +204,7 @@ const PlaceOrder = () => {
               </b>
             </div>
           </div>
-          <button type="submit">Proceed To Payment</button>
+          <button type="button" onClick={placeOrder}>Proceed To Payment</button>
         </div>
       </div>
     </form>

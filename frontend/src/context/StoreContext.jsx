@@ -46,21 +46,25 @@ const StoreContextProvider = (props) => {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        setUser({
+        const userData = {
           id: decodedToken.id,
           name: decodedToken.name,
-        });
+          email: decodedToken.email,
+          role: decodedToken.role
+        };
+        setUser(userData);
+        localStorage.setItem('userId', decodedToken.id);
       } catch (error) {
-        console.error("Failed to decode token:", error);
-        toast.error("Session expired. Please login again.");
+        console.error('Error decoding token:', error);
+        setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
       }
     }
   };
 
   useEffect(() => {
-    if (token) {
-      fetchUserFromToken();
-    }
+    fetchUserFromToken();
   }, [token]);
 
   const addToCart = async (itemId) => {
@@ -169,20 +173,27 @@ const StoreContextProvider = (props) => {
       console.error("Error fetching food list:", error);
     }
   };
-  const loadCartData = async (token) => {
-    const response = await axios.post(
-      url + "/api/cart/get",
-      {},
-      { headers: { token } }
-    );
-    setCartItems(response.data.cartData);
+  const loadCartData = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await axios.get(url + "/api/cart/get", {
+        headers: { token }
+      });
+      if (response.data.success) {
+        setCartItems(response.data.cartData || {});
+      }
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      toast.error("Failed to load cart data");
+    }
   };
   useEffect(() => {
     async function loadData() {
       await fetchFoodList();
       if (localStorage.getItem("token")) {
         setToken(localStorage.getItem("token"));
-        await loadCartData(localStorage.getItem("token"));
+        await loadCartData();
       }
     }
 
