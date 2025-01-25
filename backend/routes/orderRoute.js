@@ -28,7 +28,7 @@ orderRouter.post("/track", authMiddleware, async (req, res) => {
     }
 
     // Check if the order belongs to the requesting user
-    if (order.userId !== req.body.userId) {
+    if (order.userId.toString() !== req.user._id.toString()) {
       return res.json({ success: false, message: "Unauthorized to track this order" });
     }
 
