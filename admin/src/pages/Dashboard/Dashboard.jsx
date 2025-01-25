@@ -1,21 +1,20 @@
 import "./Dashboard.css";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useAdminAuth } from "../../context/AdminAuthContext";
+import { toast } from "react-hot-toast";
+import { FaMoneyBillWave, FaShoppingBag, FaUsers, FaUtensils, FaClock, FaCheckCircle } from 'react-icons/fa';
 
 const Dashboard = ({ url }) => {
+  const { adminToken } = useAdminAuth();
   const [dashboardData, setDashboardData] = useState({
     totalDishes: 0,
     pendingOrders: 0,
     totalOrders: 0,
     delivered: 0,
     totalSales: 0,
-    onlineTransactions: 0,
-    recentOrders: [],
-    salesByDate: {},
-    paymentMethodStats: {
-      online: 0,
-      cash: 0
-    }
+    totalUsers: 0,
+    recentOrders: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,255 +55,124 @@ const Dashboard = ({ url }) => {
     }
   };
 
-  const fetchOrderDetails = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [orderResponse, foodResponse] = await Promise.all([
-        axios.get(url + "/api/order/list"),
-        axios.get(`${url}/api/food/list`)
-      ]);
+      setError(null);
 
-      if (orderResponse.data.success && foodResponse.data.success) {
-        // First, fetch all users to get their details
-        const userResponse = await axios.get(`${url}/api/user/list`);
-        const users = userResponse.data.success ? userResponse.data.data : [];
-        
-        // Create a map of user details for quick lookup
-        const userMap = users.reduce((acc, user) => {
-          // Handle both email and _id as potential keys
-          if (user._id) acc[user._id] = user;
-          if (user.email) acc[user.email] = user;
-          return acc;
-        }, {});
+      const response = await axios.get(`${url}/api/admin/dashboard`, {
+        headers: {
+          'Authorization': `Bearer ${adminToken}`,
+          'token': adminToken
+        }
+      });
 
-        const orders = orderResponse.data.data.map(order => {
-          // Try to find user by either userId or email
-          const user = userMap[order.userId] || userMap[order.email] || {
-            name: order.customerName || order.shippingDetails?.fullName,
-            phone: order.shippingDetails?.phone || order.phone,
-            email: order.email
-          };
-
-          return {
-            ...order,
-            amount: Number(order.amount) || 0,
-            paymentMethod: order.paymentMethod?.toLowerCase() || 'cash',
-            createdAt: order.createdAt || new Date().toISOString(),
-            user: {
-              name: user.name || user.fullName || order.customerName || 'N/A',
-              phone: user.phone || order.shippingDetails?.phone || order.phone || 'N/A',
-              email: user.email || order.email || 'N/A'
-            }
-          };
-        });
-
-        const foodList = foodResponse.data.data;
-
-        const pendingOrders = orders.filter(
-          (order) => order.status === "Food Processing"
-        ).length;
-        const deliveredOrders = orders.filter(
-          (order) => order.status === "Delivered"
-        ).length;
-        
-        // Calculate total sales and payment stats
-        const { totalSales, paymentMethodStats } = orders.reduce((acc, order) => {
-          acc.totalSales += order.amount;
-          acc.paymentMethodStats[order.paymentMethod] += order.amount;
-          return acc;
-        }, {
-          totalSales: 0,
-          paymentMethodStats: { online: 0, cash: 0 }
-        });
-
-        const onlineTransactions = orders.filter(
-          (order) => order.paymentMethod === "online"
-        ).length;
-
-        // Calculate sales by date
-        const salesByDate = orders.reduce((acc, order) => {
-          const date = formatDate(order.createdAt);
-          if (date !== "Invalid Date") {
-            acc[date] = (acc[date] || 0) + order.amount;
-          }
-          return acc;
-        }, {});
-
-        // Get recent orders (last 10)
-        const recentOrders = orders
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 10);
-
-        setDashboardData({
-          totalDishes: foodList.length,
-          pendingOrders,
-          totalOrders: orders.length,
-          delivered: deliveredOrders,
-          totalSales,
-          onlineTransactions,
-          recentOrders,
-          salesByDate,
-          paymentMethodStats
-        });
+      if (response.data.success) {
+        setDashboardData(response.data.data);
       } else {
-        setError("Failed to fetch data. Please try again later.");
+        throw new Error(response.data.message || "Failed to fetch dashboard data");
       }
     } catch (error) {
-      setError("An error occurred while fetching data.");
-      console.error("Error fetching details:", error);
+      console.error("Dashboard data fetch error:", error);
+      setError(error.message || "Failed to fetch dashboard data");
+      toast.error(error.message || "Failed to fetch dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrderDetails();
-    // Refresh data every 5 minutes
-    const interval = setInterval(fetchOrderDetails, 300000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const cards = [
-    {
-      title: "Total Dishes",
-      value: dashboardData.totalDishes,
-      icon: "🍽️",
-      bgColor: "bg-green",
-      trend: "+5% from last week"
-    },
-    {
-      title: "Pending Orders",
-      value: dashboardData.pendingOrders,
-      icon: "⏳",
-      bgColor: "bg-orange",
-      trend: "Active now"
-    },
-    {
-      title: "Total Orders",
-      value: dashboardData.totalOrders,
-      icon: "📊",
-      bgColor: "bg-blue",
-      trend: "All time"
-    },
-    {
-      title: "Delivered",
-      value: dashboardData.delivered,
-      icon: "✅",
-      bgColor: "bg-green",
-      trend: "Successfully completed"
-    },
-    {
-      title: "Total Sales",
-      value: `Rs. ${Math.round(dashboardData.totalSales).toLocaleString()}`,
-      icon: "💰",
-      bgColor: "bg-purple",
-      trend: "Revenue generated"
-    },
-    {
-      title: "Online Transactions",
-      value: dashboardData.onlineTransactions,
-      icon: "💳",
-      bgColor: "bg-cyan",
-      trend: "Digital payments"
+    if (adminToken) {
+      fetchDashboardData();
     }
-  ];
+  }, [adminToken]);
 
-  if (loading) return <div className="loading">Loading dashboard data...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="dashboard loading">
+        <div className="spinner">Loading dashboard data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard error">
+        <div className="error-message">
+          <h3>Error Loading Dashboard</h3>
+          <p>{error}</p>
+          <button onClick={fetchDashboardData}>Try Again</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
-      <h1>Dashboard</h1>
-      <div className="dashboard-cards">
-        {cards.map((card, index) => (
-          <div key={index} className={`dashboard-card ${card.bgColor}`}>
-            <div className="card-icon">{card.icon}</div>
-            <div className="card-info">
-              <h3>{card.title}</h3>
-              <p className="value">{card.value}</p>
-              <p className="trend">{card.trend}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="sales-report">
-        <h2>Sales Report</h2>
-        <div className="sales-stats">
-          <div className="payment-methods">
-            <h3>Payment Methods</h3>
-            <div className="stats-container">
-              <div className="stat-item">
-                <span>Online Payments</span>
-                <span className="amount">Rs. {Math.round(dashboardData.paymentMethodStats.online).toLocaleString()}</span>
-              </div>
-              <div className="stat-item">
-                <span>Cash Payments</span>
-                <span className="amount">Rs. {Math.round(dashboardData.paymentMethodStats.cash).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="daily-sales">
-            <h3>Daily Sales</h3>
-            <div className="stats-container">
-              {Object.entries(dashboardData.salesByDate)
-                .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-                .slice(0, 7)
-                .map(([date, amount]) => (
-                  <div key={date} className="stat-item">
-                    <span>{date}</span>
-                    <span className="amount">Rs. {Math.round(amount).toLocaleString()}</span>
-                  </div>
-                ))}
-            </div>
-          </div>
+      <h2>Dashboard Overview</h2>
+      
+      <div className="stats-grid">
+        <div className="stat-card revenue">
+          <FaMoneyBillWave className="icon" />
+          <h3>Total Revenue</h3>
+          <p>₹{(dashboardData?.totalSales || 0).toLocaleString()}</p>
         </div>
 
-        <div className="recent-orders">
-          <h3>Recent Orders</h3>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer Name</th>
-                  <th>Phone</th>
-                  <th>Amount</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dashboardData.recentOrders.map((order) => (
-                  <tr key={order._id}>
-                    <td>#{order._id.slice(-6)}</td>
-                    <td>{order.user.name}</td>
-                    <td>
-                      {order.user.phone !== 'N/A' ? (
-                        <a href={`tel:${order.user.phone}`} className="phone-link">
-                          {order.user.phone}
-                        </a>
-                      ) : 'N/A'}
-                    </td>
-                    <td>Rs. {Math.round(order.amount).toLocaleString()}</td>
-                    <td>
-                      <span className={`payment-badge ${order.paymentMethod}`}>
-                        {order.paymentMethod === 'online' ? 'Online' : 'Cash'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${order.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td>{formatDateTime(order.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="stat-card orders">
+          <FaShoppingBag className="icon" />
+          <h3>Total Orders</h3>
+          <p>{dashboardData?.totalOrders || 0}</p>
+        </div>
+
+        <div className="stat-card users">
+          <FaUsers className="icon" />
+          <h3>Total Users</h3>
+          <p>{dashboardData?.totalUsers || 0}</p>
+        </div>
+
+        <div className="stat-card dishes">
+          <FaUtensils className="icon" />
+          <h3>Total Dishes</h3>
+          <p>{dashboardData?.totalDishes || 0}</p>
+        </div>
+
+        <div className="stat-card pending">
+          <FaClock className="icon" />
+          <h3>Pending Orders</h3>
+          <p>{dashboardData?.pendingOrders || 0}</p>
+        </div>
+
+        <div className="stat-card delivered">
+          <FaCheckCircle className="icon" />
+          <h3>Delivered Orders</h3>
+          <p>{dashboardData?.delivered || 0}</p>
+        </div>
+      </div>
+
+      <div className="recent-orders">
+        <h3>Recent Orders</h3>
+        <div className="orders-list">
+          {(dashboardData?.recentOrders || []).map((order) => (
+            <div key={order._id} className="order-item">
+              <div className="order-header">
+                <span className="order-id">Order #{order._id?.slice(-6) || 'N/A'}</span>
+                <span className={`order-status ${(order.status || '').toLowerCase()}`}>
+                  {order.status || 'N/A'}
+                </span>
+              </div>
+              <div className="order-details">
+                <p>
+                  <strong>Customer:</strong> {order.user?.name || "N/A"}
+                </p>
+                <p>
+                  <strong>Amount:</strong> ₹{(order.total || 0).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Date:</strong> {formatDateTime(order.createdAt)}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

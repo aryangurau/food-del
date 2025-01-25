@@ -9,6 +9,27 @@
   --text-secondary: #7f8c8d;
   --bg-light: #f8f9fa;
   --card-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+  
+  --primary-blue: #3b82f6;
+  --primary-purple: #8b5cf6;
+  --primary-teal: #14b8a6;
+  --primary-orange: #f97316;
+  --primary-red: #ef4444;
+  --primary-green: #22c55e;
+  
+  --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-teal: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  --gradient-orange: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-green: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  
+  --blue-gradient: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.08) 100%);
+  --purple-gradient: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+  --teal-gradient: linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(13, 148, 136, 0.08) 100%);
+  --orange-gradient: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(234, 88, 12, 0.08) 100%);
+  --red-gradient: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%);
+  --green-gradient: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.08) 100%);
 }
 
 .dashboard-container {
@@ -62,6 +83,41 @@
   box-shadow: var(--card-shadow);
   transition: all 0.3s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+}
+
+.dashboard-card.revenue::before {
+  background: var(--gradient-blue);
+}
+
+.dashboard-card.orders::before {
+  background: var(--gradient-purple);
+}
+
+.dashboard-card.users::before {
+  background: var(--gradient-teal);
+}
+
+.dashboard-card.dishes::before {
+  background: var(--gradient-orange);
+}
+
+.dashboard-card.pending::before {
+  background: var(--gradient-red);
+}
+
+.dashboard-card.delivered::before {
+  background: var(--gradient-green);
 }
 
 .dashboard-card:hover {
@@ -197,201 +253,251 @@
 
 .dashboard {
   padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.dashboard h1 {
-  margin-bottom: 2rem;
+.dashboard h2 {
+  font-size: 2rem;
   color: #333;
+  margin-bottom: 2rem;
+  font-weight: 600;
 }
 
-.dashboard-cards {
+/* Stats Grid */
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
-.dashboard-card {
-  background: white;
-  padding: 1.5rem;
+.stat-card {
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: flex-start;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card.revenue {
+  background: var(--blue-gradient);
+  border-left: 4px solid var(--primary-blue);
+}
+
+.stat-card.orders {
+  background: var(--purple-gradient);
+  border-left: 4px solid var(--primary-purple);
+}
+
+.stat-card.users {
+  background: var(--teal-gradient);
+  border-left: 4px solid var(--primary-teal);
+}
+
+.stat-card.dishes {
+  background: var(--orange-gradient);
+  border-left: 4px solid var(--primary-orange);
+}
+
+.stat-card.pending {
+  background: var(--red-gradient);
+  border-left: 4px solid var(--primary-red);
+}
+
+.stat-card.delivered {
+  background: var(--green-gradient);
+  border-left: 4px solid var(--primary-green);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.stat-card.revenue h3 { color: var(--primary-blue); }
+.stat-card.orders h3 { color: var(--primary-purple); }
+.stat-card.users h3 { color: var(--primary-teal); }
+.stat-card.dishes h3 { color: var(--primary-orange); }
+.stat-card.pending h3 { color: var(--primary-red); }
+.stat-card.delivered h3 { color: var(--primary-green); }
+
+.stat-card p {
+  font-size: 1.8rem;
+  color: #1f2937;
+  font-weight: 600;
+  margin: 0;
+}
+
+.stat-card .icon {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  opacity: 0.15;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .icon {
+  opacity: 0.25;
+  transform: scale(1.1);
+}
+
+.stat-card.revenue .icon { color: var(--primary-blue); }
+.stat-card.orders .icon { color: var(--primary-purple); }
+.stat-card.users .icon { color: var(--primary-teal); }
+.stat-card.dishes .icon { color: var(--primary-orange); }
+.stat-card.pending .icon { color: var(--primary-red); }
+.stat-card.delivered .icon { color: var(--primary-green); }
+
+/* Recent Orders */
+.recent-orders {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eee;
+}
+
+.recent-orders h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.orders-list {
+  display: grid;
   gap: 1rem;
 }
 
-.card-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.card-info h3 {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.card-info .value {
-  margin: 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.card-info .trend {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #666;
-}
-
-/* Sales Report Styles */
-.sales-report {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-}
-
-.sales-report h2 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
-}
-
-.sales-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.payment-methods,
-.daily-sales {
-  background: #f8f9fa;
-  padding: 1.5rem;
+.order-item {
+  background: rgba(0, 0, 0, 0.02);
   border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.payment-methods h3,
-.daily-sales h3,
-.recent-orders h3 {
-  margin: 0 0 1rem 0;
-  color: #333;
-  font-size: 1.1rem;
+.order-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+  transform: translateX(5px);
 }
 
-.stats-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.stat-item {
+.order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.8rem;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
 }
 
-.stat-item .amount {
+.order-id {
   font-weight: 600;
-  color: #333;
+  color: #2c3e50;
 }
 
-/* Table Styles */
-.table-container {
-  overflow-x: auto;
-  margin-top: 1rem;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  white-space: nowrap;
-}
-
-th {
-  background: #f8f9fa;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #333;
-}
-
-td {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-.payment-badge,
-.status-badge {
-  padding: 0.3rem 0.6rem;
+.order-status {
+  padding: 0.4rem 0.8rem;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
-.payment-badge.online {
-  background: #e3f2fd;
-  color: #1976d2;
+.order-status.pending {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
-.payment-badge.cash {
-  background: #e8f5e9;
-  color: #2e7d32;
+.order-status.processing {
+  background-color: #cce5ff;
+  color: #004085;
 }
 
-.status-badge.delivered {
-  background: #e8f5e9;
-  color: #2e7d32;
+.order-status.completed {
+  background-color: #d4edda;
+  color: #155724;
 }
 
-.status-badge.pending,
-.status-badge.food {
-  background: #fff3e0;
-  color: #f57c00;
+.order-status.cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
-/* Background Colors */
-.bg-green {
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-  color: white;
+.order-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
-.bg-orange {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  color: white;
-}
-
-.bg-blue {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-  color: white;
-}
-
-.bg-purple {
-  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
-  color: white;
-}
-
-.bg-cyan {
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
-  color: white;
-}
-
-/* Loading and Error States */
-.loading {
-  text-align: center;
-  padding: 2rem;
+.order-details p {
   color: #666;
+  font-size: 0.9rem;
 }
 
-.error {
+/* Loading State */
+.dashboard.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.spinner {
+  color: #4a90e2;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+/* Error State */
+.dashboard.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.error-message {
   text-align: center;
   padding: 2rem;
-  color: #d32f2f;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.error-message h3 {
+  color: #721c24;
+  margin-bottom: 1rem;
+}
+
+.error-message p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.error-message button {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.error-message button:hover {
+  background: #357abd;
 }
 
 /* Responsive Design */
@@ -400,41 +506,15 @@ td {
     padding: 1rem;
   }
 
-  .dashboard-cards {
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .sales-stats {
+  .order-details {
     grid-template-columns: 1fr;
   }
 
-  .stat-item {
-    padding: 0.6rem;
+  .stat-card p {
+    font-size: 1.5rem;
   }
-
-  th, td {
-    padding: 0.8rem;
-  }
-
-  .card-info .value {
-    font-size: 1.2rem;
-  }
-}
-
-/* Phone Link Styles */
-.phone-link {
-  color: #2196f3;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.phone-link:hover {
-  text-decoration: underline;
-  color: #1976d2;
-}
-
-.phone-link:active {
-  color: #1565c0;
 }
