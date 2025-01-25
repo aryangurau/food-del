@@ -85,7 +85,7 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create OTP for email verification
-    const otp = genOTP();
+    // const otp = genOTP();
 
     // Create new user
     const user = new userModel({
@@ -102,13 +102,13 @@ const registerUser = async (req, res) => {
     const htmlMessage = `
       <h2>Welcome to Food Delivery</h2>
       <p>Hi ${name},</p>
-      <p>Your OTP for account verification is: <strong>${otp}</strong></p>
-      <p>This OTP will expire in 10 minutes.</p>
+      <p>Start placing orders now!</p>
+     
     `;
 
     await sendEmail({
       to: email,
-      subject: "Account Verification",
+      subject: "Registration",
       htmlMessage,
     });
 
