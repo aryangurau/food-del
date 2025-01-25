@@ -7,10 +7,10 @@ const Footer = () => {
         <div className="footer-content-left">
           <img src={assets.icon} alt="" className="icon" />
           <p>
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Inventore,
-            itaque magni amet fugit, debitis quasi illo at maxime porro labore
-            praesentium iure ea. Quisquam non quis minus quaerat necessitatibus
-            totam?
+            Welcome to Pathao Khaja, your premier food delivery destination, bringing delicious meals right to 
+            your doorstep. With real-time tracking, secure payments, and a wide selection 
+            of cuisines, we ensure a seamless dining experience. Our commitment to quality 
+            service and customer satisfaction makes us your trusted partner in food delivery.
           </p>
           <div className="footer-social-icons">
             <img src={assets.facebook_icon} alt="" />
