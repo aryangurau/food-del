@@ -43,16 +43,19 @@ const Orders = ({ url }) => {
     fetchAllOrders();
   }, [url, adminToken]);
 
-  const statusHandler = async (e, orderId) => {
-    const newStatus = e.target.value;
+  const statusHandler = async (e, orderId, type) => {
+    const value = e.target.value;
     try {
+      const updateData = type === 'payment' 
+        ? { orderId, paymentStatus: value }
+        : { orderId, status: value };
+
       const response = await axios.put(
         `${url}/api/admin/orders/${orderId}`,
-        { status: newStatus },
+        updateData,
         {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
-            'token': adminToken
           }
         }
       );
@@ -63,13 +66,11 @@ const Orders = ({ url }) => {
             ? response.data.data
             : order
         ));
-        toast.success("Order status updated successfully");
-      } else {
-        throw new Error(response.data.message || "Failed to update order status");
+        toast.success(`${type === 'payment' ? 'Payment status' : 'Order status'} updated successfully`);
       }
     } catch (error) {
-      console.error("Error updating order status:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to update order status");
+      console.error(`Error updating ${type} status:`, error);
+      toast.error(error.response?.data?.message || error.message || `Failed to update ${type} status`);
     }
   };
 
@@ -136,28 +137,51 @@ const Orders = ({ url }) => {
             
             <div className="order-details">
               <div className="order-header">
-                <span className="order-id">Order #{order._id?.slice(-6) || 'N/A'}</span>
-                <span className={`order-status ${(order.status || '').toLowerCase()}`}>
-                  {order.status || 'N/A'}
+                <span className="order-id">Order #{order._id.slice(-5)}</span>
+                <span className={`order-status ${order.status?.toLowerCase()}`}>
+                  {order.status}
                 </span>
               </div>
 
               <div className="order-info">
                 <div className="info-group">
                   <h4>Order Details</h4>
-                  <p><strong>Amount:</strong> ₹{(order.total || 0).toLocaleString()}</p>
-                  <p><strong>Date:</strong> {formatDate(order.createdAt)}</p>
-                  <p><strong>Payment:</strong> {order.paymentStatus || 'N/A'}</p>
+                  <div className="order-details">
+                    <p><strong>Amount:</strong> {order.amount}</p>
+                    <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+                    <p>
+                      <strong>Payment:</strong>
+                      <select
+                        value={order.paymentStatus}
+                        onChange={(e) => statusHandler(e, order._id, 'payment')}
+                        className={order.paymentStatus?.toLowerCase()}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                      </select>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="info-group">
                   <h4>Customer Details</h4>
-                  {formatAddress(order.address)}
+                  <div className="customer-info">
+                    <p><strong>Name:</strong> {order.address?.name || 'N/A'}</p>
+                    <p><strong>Phone:</strong> {order.address?.phone || 'N/A'}</p>
+                    <p><strong>Email:</strong> {order.address?.email || 'N/A'}</p>
+                  </div>
                 </div>
 
                 <div className="info-group">
                   <h4>Delivery Address</h4>
-                  {formatAddress(order.address)}
+                  <div className="address-details">
+                    <p><strong>Street:</strong> {order.address?.street || 'N/A'}</p>
+                    <p><strong>City:</strong> {order.address?.city || 'N/A'}</p>
+                    <p><strong>State:</strong> {order.address?.state || 'N/A'}</p>
+                    <p><strong>Country:</strong> {order.address?.country || 'N/A'}</p>
+                    <p><strong>Zip Code:</strong> {order.address?.zipCode || 'N/A'}</p>
+                  </div>
                 </div>
 
                 <div className="order-items">
@@ -175,13 +199,13 @@ const Orders = ({ url }) => {
                   <p>Update Status:</p>
                   <select
                     value={order.status || ''}
-                    onChange={(e) => statusHandler(e, order._id)}
-                    className={order.status?.toLowerCase() || ''}
+                    onChange={(e) => statusHandler(e, order._id, 'order')}
+                    className={order.status?.toLowerCase()}
                   >
                     <option value="pending">Pending</option>
                     <option value="preparing">Preparing</option>
                     <option value="prepared">Prepared</option>
-                    <option value="ontheway">On the way</option>
+                    <option value="ontheway">On the Way</option>
                     <option value="delivered">Delivered</option>
                     <option value="cancelled">Cancelled</option>
                   </select>

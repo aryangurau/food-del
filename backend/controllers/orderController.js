@@ -271,14 +271,68 @@ const listOrders = async (req, res) => {
 //api for updating order status
 const updateStatus = async (req, res) => {
   try {
-    await orderModel.findByIdAndUpdate(req.body.orderId, {
-      status: req.body.status,
+    const { orderId, status, paymentStatus } = req.body;
+    
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+
+    const order = await orderModel.findByIdAndUpdate(
+      orderId,
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: order,
+      message: "Order updated successfully"
     });
-    res.json({ success: true, message: "Status Updated" });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error updating order:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update order"
+    });
   }
 };
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus };
+const updatePaymentStatus = async (req, res) => {
+  try {
+    const { orderId, paymentStatus } = req.body;
+    
+    const order = await orderModel.findByIdAndUpdate(
+      orderId,
+      { paymentStatus },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: order,
+      message: "Payment status updated successfully"
+    });
+  } catch (error) {
+    console.error("Error updating payment status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update payment status"
+    });
+  }
+};
+
+export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, updatePaymentStatus };
