@@ -8,6 +8,7 @@ import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import adminRouter from "./routes/adminRoute.js";
 import { Server } from "socket.io";
 import http from "http";
 import foodModel from "./models/foodModel.js";
@@ -22,9 +23,10 @@ const server = http.createServer(app);
 
 // Configure CORS
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"], // Allow both frontend and admin
+  origin: ["http://localhost:5173", "http://localhost:5174"],
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
 };
 
 // Middleware
@@ -40,6 +42,7 @@ app.use("/images", express.static("uploads"));
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
+app.use("/api/admin", adminRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working");
@@ -280,5 +283,5 @@ io.on("connection", (socket) => {
 
 // Start the server
 server.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });

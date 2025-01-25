@@ -6,8 +6,9 @@ const authMiddleware = async (req, res, next) => {
     return res.json({ success: false, message: "Not Authorized login again" });
   }
   try {
-    const token_decode = jwt.verify(token, process.env.JWT_SECRET);
-    req.body.userId = token_decode.id;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.id }; // Set user object
+    req.body.userId = decoded.id; // Keep for backward compatibility
     next();
   } catch (error) {
     console.log(error);

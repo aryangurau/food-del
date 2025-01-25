@@ -2,7 +2,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 4%;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
 .navbar .logo {
@@ -10,8 +12,19 @@
   height: 35px;
 }
 
+.logo {
+  width: 200px;
+}
+
 .navbar .profile {
   width: 40px;
+}
+
+.profile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .nav-left {
@@ -42,6 +55,28 @@
 .nav-links a.active {
   color: #007bff;
   background-color: #e7f1ff;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logout-button {
+  padding: 8px 16px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #dc2626;
 }
 
 @media (max-width: 768px) {
