@@ -77,8 +77,8 @@ const LoginPopup = ({ setShowLogin }) => {
                 placeholder="Phone Number (e.g., +977 98XXXXXXXX)"
                 value={data.phone}
                 onChange={onChangeHandler}
-                pattern="^\+?[\d\s-]{10,15}$"
-                title="Please enter a valid phone number with optional country code"
+                pattern="[0-9]{10}"
+                title="Please enter a 10-digit phone number"
                 required
               />
             </div>
