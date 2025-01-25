@@ -17,6 +17,8 @@ import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import SearchResults from "./components/SearchResult/SearchResults";
 import ChatComponent from "./components/ChatComponent/ChatComponent";
+import Profile from "./components/Profile/Profile";
+import Settings from "./components/Settings/Settings";
 import { Toaster } from 'react-hot-toast';
 
 const App = () => {
@@ -99,6 +101,8 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/order" element={<PlaceOrder />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/myorders" element={<MyOrders/>} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </div>
       <Footer />

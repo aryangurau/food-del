@@ -217,38 +217,56 @@ const Navbar = ({ setShowLogin }) => {
             </Link>
           </div>
 
-          {!token ? (
-            <button onClick={() => {
-              setShowLogin(true);
-              setIsMobileMenuOpen(false);
-            }}>
-              Sign In
-            </button>
-          ) : (
-            <div 
-              ref={profileRef}
-              className={`navbar-profile ${isProfileOpen ? "active" : ""}`}
-              onClick={toggleProfile}
-            >
-              <p className="welcome-message">Welcome, {user?.name || "User"}</p>
-              <img src={assets.profile_icon} alt="" />
-              <ul className={`nav-profile-dropdown ${isProfileOpen ? "show" : ""}`}>
-                <li onClick={() => {
-                  navigate("/myorders");
-                  setIsMobileMenuOpen(false);
-                  setIsProfileOpen(false);
-                }}>
-                  <img src={assets.bag_icon} alt="" />
-                  <p>Orders</p>
-                </li>
-                <hr />
-                <li onClick={logout}>
-                  <img src={assets.logout_icon} alt="" />
-                  <p>Logout</p>
-                </li>
-              </ul>
-            </div>
-          )}
+          <div className="navbar-profile" ref={profileRef}>
+            {token ? (
+              <>
+                <p className="welcome-message">Welcome, {user?.name || "User"}</p>
+                <img
+                  src={user?.profilePicture || assets.profile_icon}
+                  alt=""
+                  onClick={toggleProfile}
+                  className="profile-icon"
+                />
+                {isProfileOpen && (
+                  <div className="profile-dropdown">
+                    <div className="dropdown-header">
+                      <img
+                        src={user?.profilePicture || assets.profile_icon}
+                        alt=""
+                        className="dropdown-profile-pic"
+                      />
+                      <div className="dropdown-user-info">
+                        <p className="user-name">{user?.name || 'User'}</p>
+                        <p className="user-email">{user?.email}</p>
+                      </div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="dropdown-item">
+                      <img src={assets.profile_icon} alt="" />
+                      <span>My Profile</span>
+                    </Link>
+                    <Link to="/myorders" onClick={() => setIsProfileOpen(false)} className="dropdown-item">
+                      <img src={assets.bag_icon} alt="" />
+                      <span>My Orders</span>
+                    </Link>
+                    <Link to="/settings" onClick={() => setIsProfileOpen(false)} className="dropdown-item">
+                      <img src={assets.settings_icon} alt="" />
+                      <span>Settings</span>
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={logout}>
+                      <img src={assets.logout_icon} alt="" />
+                      <span>Logout</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <button className="login-btn" onClick={() => setShowLogin(true)}>
+                Login
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
