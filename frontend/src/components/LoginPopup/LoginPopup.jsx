@@ -12,6 +12,7 @@ const LoginPopup = ({ setShowLogin }) => {
     name: "",
     email: "",
     password: "",
+    phone: "",
   });
   const [loading, setLoading] = useState(false); // Loading state
 
@@ -57,32 +58,52 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <div className="login-popup-inputs">
           {currState === "Sign Up" && (
+            <div className="input-container">
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                value={data.name}
+                onChange={onChangeHandler}
+                required
+              />
+            </div>
+          )}
+          {currState === "Sign Up" && (
+            <div className="input-container">
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number (e.g., +977 98XXXXXXXX)"
+                value={data.phone}
+                onChange={onChangeHandler}
+                pattern="^\+?[\d\s-]{10,15}$"
+                title="Please enter a valid phone number with optional country code"
+                required
+              />
+            </div>
+          )}
+          <div className="input-container">
             <input
-              name="name"
+              name="email"
               onChange={onChangeHandler}
-              value={data.name}
-              type="text"
-              placeholder="Enter name"
+              value={data.email}
+              type="email"
+              placeholder="Enter email"
               required
             />
-          )}
-          <input
-            name="email"
-            onChange={onChangeHandler}
-            value={data.email}
-            type="email"
-            placeholder="Enter email"
-            required
-          />
-          <input
-            name="password"
-            onChange={onChangeHandler}
-            value={data.password}
-            type="password"
-            id="myPassword"
-            placeholder="Enter Password"
-            required
-          />
+          </div>
+          <div className="input-container">
+            <input
+              name="password"
+              onChange={onChangeHandler}
+              value={data.password}
+              type="password"
+              id="myPassword"
+              placeholder="Enter Password"
+              required
+            />
+          </div>
         </div>
 
         <div className="showhide">

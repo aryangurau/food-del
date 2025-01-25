@@ -5,6 +5,12 @@ import validator from "validator";
 import { sendEmail } from "../utils/mailer.js";
 import { genOTP } from "../utils/token.js";
 
+const createToken = (id, name) => {
+  const token = jwt.sign({ id, name }, process.env.JWT_SECRET, { expiresIn: "3d" });
+  console.log("Created Token:", token);  // Verify the structure of the token
+  return token;
+};
+
 //login user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -41,18 +47,9 @@ const loginUser = async (req, res) => {
   }
 };
 
-
-
-const createToken = (id, name) => {
-  const token = jwt.sign({ id, name }, process.env.JWT_SECRET, { expiresIn: "3d" });
-  console.log("Created Token:", token);  // Verify the structure of the token
-  return token;
-};
-
-
 //register user with email sending
 const registerUser = async (req, res) => {
-  const { name, password, email } = req.body;
+  const { name, password, email, phone } = req.body;
   try {
     // Checking if user already exists
     const exists = await userModel.findOne({ email });
@@ -74,54 +71,62 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Validate phone number (should be 10-15 digits with optional country code)
+    const phoneRegex = /^\+?[\d\s-]{10,15}$/;
+    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+      return res.json({
+        success: false,
+        message: "Please enter a valid phone number",
+      });
+    }
+
     // Hashing user password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user and generate token
-    const newUser = new userModel({
+    // Create OTP for email verification
+    const otp = genOTP();
+
+    // Create new user
+    const user = new userModel({
       name,
       email,
       password: hashedPassword,
+      phone,
     });
-    const user = await newUser.save();
 
-    const token = createToken(user._id, user.name);
+    // Save user
+    await user.save();
 
-    // Save token in the database
-    await userModel.findByIdAndUpdate(user._id, { token });
-
-    // Send OTP email
+    // Send verification email
     const htmlMessage = `
-      <h1>Welcome to Pathao Khaja!</h1>
-      <p>Hello ${name},</p>
-      <p>Thank you for registering. Start placing your order:</p>
-      <p>If you didn't request this, please ignore this email.</p>
+      <h2>Welcome to Food Delivery</h2>
+      <p>Hi ${name},</p>
+      <p>Your OTP for account verification is: <strong>${otp}</strong></p>
+      <p>This OTP will expire in 10 minutes.</p>
     `;
 
     await sendEmail({
       to: email,
-      subject: "New User Registration",
+      subject: "Account Verification",
       htmlMessage,
     });
 
-    // Respond with success message and token
     res.json({
       success: true,
-      message: "Registration successful",
-      token,
+      message: "Registration successful! Please check your email for verification.",
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
-      }
+        email: user.email,
+        phone: user.phone
+      },
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error in controller" });
   }
 };
-
 
 // Get all users with pagination
 const getUsers = async (req, res) => {
