@@ -1,11 +1,12 @@
-import { useState } from "react";
-import axios from "axios";
-import "./List.css";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { FaTrash } from 'react-icons/fa';
 import { toast } from "react-toastify";
-import { useEffect } from "react";
+import "./List.css";
 
 const List = ({ url }) => {
-  const [list, setList] = useState([]);
+  const [foodItems, setFoodItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -14,59 +15,99 @@ const List = ({ url }) => {
     itemsPerPage: 10
   });
 
-  const fetchList = async (page = 1) => {
-    const response = await axios.get(`${url}/api/food/list?page=${page}&limit=10`);
-    if (response.data.success) {
-      setList(response.data.data);
-      setPagination(response.data.pagination);
-    } else {
-      toast.error("Error");
+  useEffect(() => {
+    fetchFoodItems();
+  }, []);
+
+  const fetchFoodItems = async (page = 1) => {
+    try {
+      const response = await axios.get(`${url}/api/food/list?page=${page}&limit=10`);
+      if (response.data.success) {
+        setFoodItems(response.data.data);
+        setPagination(response.data.pagination);
+      }
+    } catch (error) {
+      console.error('Error fetching food items:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const removeFood = async (foodId) => {
-    const response = await axios.post(`${url}/api/food/remove`, { id: foodId });
-    await fetchList(currentPage);
-    if (response.data.success) {
-      toast.success(response.data.message);
-    } else {
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.post(`${url}/api/food/remove`, { id: id });
+      if (response.data.success) {
+        setFoodItems(foodItems.filter(item => item._id !== id));
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting food item:', error);
       toast.error("Error");
     }
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    fetchList(page);
+    fetchFoodItems(page);
   };
 
-  useEffect(() => {
-    fetchList(1);
-  }, []);
+  if (loading) {
+    return (
+      <div className="list-container">
+        <div className="loader"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="list add flex-col">
-      <p>All food list</p>
+    <div className="list-container">
+      <div className="list-header">
+        <h2>All Food Items</h2>
+      </div>
+      
       <div className="list-table">
-        <div className="list-table-format title">
-          <b>Image</b>
-          <b>Name</b>
-          <b>Category</b>
-          <b>Price</b>
-          <b>Action</b>
-        </div>
-        {list.map((item, index) => {
-          return (
-            <div key={index} className="list-table-format">
-              <img src={`${url}/images/` + item.image} alt="" />
-              <p>{item.name}</p>
-              <p>{item.category}</p>
-              <p>${item.price}</p>
-              <p onClick={() => removeFood(item._id)} className="cursor">
-                X
-              </p>
-            </div>
-          );
-        })}
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {foodItems.map((item) => (
+              <tr key={item._id}>
+                <td>
+                  <img 
+                    src={`${url}/images/` + item.image} 
+                    alt={item.name} 
+                    className="food-image"
+                  />
+                </td>
+                <td>
+                  <span className="food-name">{item.name}</span>
+                </td>
+                <td>
+                  <span className="category-badge">{item.category}</span>
+                </td>
+                <td>
+                  <span className="price">${item.price}</span>
+                </td>
+                <td>
+                  <button
+                    className="action-btn"
+                    onClick={() => handleDelete(item._id)}
+                    title="Delete item"
+                  >
+                    <FaTrash />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination Controls */}
