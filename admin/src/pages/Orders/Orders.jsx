@@ -50,12 +50,13 @@ const Orders = ({ url }) => {
         ? { orderId, paymentStatus: value }
         : { orderId, status: value };
 
-      const response = await axios.put(
-        `${url}/api/admin/orders/${orderId}`,
+      const response = await axios.post(
+        `${url}/api/order/status`,
         updateData,
         {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -63,7 +64,7 @@ const Orders = ({ url }) => {
       if (response.data.success) {
         setOrders(orders.map(order => 
           order._id === orderId 
-            ? response.data.data
+            ? { ...order, [type === 'payment' ? 'paymentStatus' : 'status']: value }
             : order
         ));
         toast.success(`${type === 'payment' ? 'Payment status' : 'Order status'} updated successfully`);

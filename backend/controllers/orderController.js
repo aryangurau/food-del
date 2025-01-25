@@ -292,7 +292,6 @@ const updateStatus = async (req, res) => {
 
     res.json({
       success: true,
-      data: order,
       message: "Order updated successfully"
     });
   } catch (error) {
