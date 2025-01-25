@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
+import { AppProvider } from './context/AppContext';
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
+import Menu from "./pages/Menu/Menu";
+import Offers from "./components/Offers/Offers";
+import Wishlist from "./components/Wishlist/Wishlist";
+import Notifications from "./components/Notifications/Notifications";
+import LoyaltyPoints from "./components/LoyaltyPoints/LoyaltyPoints";
 import Cart from "./pages/Cart/Cart";
 import PlaceOrder from "./pages/PlaceOrder/PlaceOrder";
 import LoginPopup from "./components/LoginPopup/LoginPopup";
@@ -16,7 +22,7 @@ const App = () => {
   const [showLogin, setShowLogin] = useState(false);
 
   return (
-    <>
+    <AppProvider>
       <Toaster
         position="top-right"
         reverseOrder={false}
@@ -71,6 +77,11 @@ const App = () => {
         <Navbar setShowLogin={setShowLogin} />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/offers" element={<Offers />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/loyalty" element={<LoyaltyPoints />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/order" element={<PlaceOrder />} />
@@ -81,7 +92,7 @@ const App = () => {
       <Footer />
       {/* Chatbot */}
       <ChatComponent />
-    </>
+    </AppProvider>
   );
 };
 
