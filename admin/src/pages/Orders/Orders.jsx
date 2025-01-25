@@ -152,43 +152,40 @@ const Orders = ({ url }) => {
 
                 <div className="info-group">
                   <h4>Customer Details</h4>
-                  <div className="customer-info">
-                    <p><strong>Name:</strong> {order.address?.name || 'N/A'}</p>
-                    <p><strong>Phone:</strong> {order.address?.phone || 'N/A'}</p>
-                  </div>
+                  {formatAddress(order.address)}
                 </div>
 
                 <div className="info-group">
                   <h4>Delivery Address</h4>
                   {formatAddress(order.address)}
                 </div>
-              </div>
 
-              <div className="order-items">
-                <h4>Order Items</h4>
-                <div className="items-list">
-                  {(order.items || []).map((item, index) => (
-                    <span key={index} className="item">
-                      {item.name || 'Unknown'} × {item.quantity || 0}
-                    </span>
-                  ))}
+                <div className="order-items">
+                  <h4>Order Items</h4>
+                  <div className="items-list">
+                    {(order.items || []).map((item, index) => (
+                      <span key={index} className="item">
+                        {item.name || 'Unknown'} × {item.quantity || 0}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="status-container">
-                <p>Update Status:</p>
-                <select
-                  value={order.status || ''}
-                  onChange={(e) => statusHandler(e, order._id)}
-                  className={order.status?.toLowerCase() || ''}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="preparing">Preparing</option>
-                  <option value="prepared">Prepared</option>
-                  <option value="ontheway">On the way</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+                <div className="status-container">
+                  <p>Update Status:</p>
+                  <select
+                    value={order.status || ''}
+                    onChange={(e) => statusHandler(e, order._id)}
+                    className={order.status?.toLowerCase() || ''}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="prepared">Prepared</option>
+                    <option value="ontheway">On the way</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>

@@ -17,16 +17,17 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const { items, amount } = req.body;
+    const { items, amount, address } = req.body;
     const userId = req.user._id;
 
     // Validate required fields
-    if (!items || !amount) {
+    if (!items || !amount || !address) {
       return res.status(400).json({
         success: false,
         message: `Missing required fields: ${[
           !items && 'items',
-          !amount && 'amount'
+          !amount && 'amount',
+          !address && 'address'
         ].filter(Boolean).join(', ')}`
       });
     }
@@ -51,6 +52,17 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Each item must have _id, name, price, and quantity"
+      });
+    }
+
+    // Validate address fields
+    const requiredAddressFields = ['street', 'city', 'state', 'country', 'zipCode'];
+    const missingAddressFields = requiredAddressFields.filter(field => !address[field]);
+    
+    if (missingAddressFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing address fields: ${missingAddressFields.join(', ')}`
       });
     }
 
@@ -97,33 +109,31 @@ const placeOrder = async (req, res) => {
         userId,
         items,
         amount,
-        status: "pending"
+        address,
+        status: "pending",
+        paymentStatus: "pending"
       });
 
-      const savedOrder = await newOrder.save();
+      await newOrder.save();
 
-      // Clean user's cart data
-      await userModel.findByIdAndUpdate(userId, {
-        cartData: {},
-      });
-
-      res.status(200).json({
+      res.json({
         success: true,
-        session_url: session.url,
+        url: session.url,
+        orderId: newOrder._id
       });
+
     } catch (stripeError) {
-      console.error("Stripe error:", stripeError);
-      return res.status(400).json({
+      console.error("Stripe session creation error:", stripeError);
+      res.status(500).json({
         success: false,
-        message: stripeError.message
+        message: "Failed to create payment session"
       });
     }
   } catch (error) {
-    console.error("Error in placeOrder:", error);
+    console.error("Order placement error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to place order",
-      error: error.message
+      message: "Failed to place order"
     });
   }
 };
@@ -234,7 +244,7 @@ const listOrders = async (req, res) => {
     const totalPages = Math.ceil(totalItems / limit);
 
     const orders = await orderModel.find({})
-      .populate('userId', 'name email')
+      .populate('userId', 'name email phone')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -250,8 +260,11 @@ const listOrders = async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch orders" 
+    });
   }
 };
 

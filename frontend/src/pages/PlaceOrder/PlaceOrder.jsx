@@ -33,6 +33,14 @@ const PlaceOrder = () => {
       return;
     }
 
+    // Validate required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'street', 'city', 'state', 'zipcode', 'country', 'phone'];
+    const missingFields = requiredFields.filter(field => !data[field]);
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
     const orderItems = [];
     food_list.forEach((item) => {
       if (cartItems[item._id] > 0) {
@@ -52,16 +60,23 @@ const PlaceOrder = () => {
     }
 
     const totalAmount = getTotalCartAmount() + 2;
-    console.log("Order Items:", orderItems);
-    console.log("Total Amount:", totalAmount);
 
     const orderData = {
       items: orderItems,
-      amount: totalAmount
+      amount: totalAmount,
+      address: {
+        street: data.street,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        zipCode: data.zipcode, // Note: backend expects zipCode, not zipcode
+        name: `${data.firstName} ${data.lastName}`,
+        email: data.email,
+        phone: data.phone
+      }
     };
 
     console.log("Sending order data:", orderData);
-    console.log("Using token:", token);
 
     try {
       const response = await axios.post(`${url}/api/order/place`, orderData, {
@@ -75,15 +90,13 @@ const PlaceOrder = () => {
       console.log("Response received:", response.data);
       
       if (response.data.success) {
-        const { session_url } = response.data;
-        window.location.replace(session_url);
+        const { url: checkoutUrl } = response.data;
+        window.location.replace(checkoutUrl);
       } else {
         toast.error(response.data.message || "Failed to place order");
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      console.log("Error response:", error.response);
-      console.log("Error response data:", error.response?.data);
       const errorMessage = error.response?.data?.message || "Failed to place order";
       toast.error(errorMessage);
     }
