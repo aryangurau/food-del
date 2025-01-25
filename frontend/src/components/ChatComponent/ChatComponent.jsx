@@ -116,7 +116,7 @@ const ChatComponent = () => {
   return (
     <div className={`chat-container ${isMinimized ? "minimized" : ""}`}>
       <div className="chat-header" onClick={toggleChatMinimize}>
-        <img src={assets.bot} alt="Chat Bot" className="bot-avatar" />
+        <img src={assets.profile_icon} alt="Chat Bot" className="bot-avatar" />
         <span>Food Delivery Assistant</span>
         <button className="minimize-button">
           {isMinimized ? "+" : "-"}
@@ -131,7 +131,7 @@ const ChatComponent = () => {
           >
             <div className="message-content">
               {message.sender === "bot" && (
-                <img src={assets.bot} alt="Bot" className="message-avatar" />
+                <img src={assets.profile_icon} alt="Bot" className="message-avatar" />
               )}
               <div className="message-text">
                 {message.text.split('\n').map((line, i) => (

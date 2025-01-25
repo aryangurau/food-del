@@ -6,6 +6,7 @@ import header_banner from "./header_banner.png";
 import retro from "./retro.png";
 import banner2 from "./banner2.png"
 import search_icon from "./search_icon.png";
+
 import menu_1 from "./menu_1.png";
 import menu_2 from "./menu_2.png";
 import menu_3 from "./menu_3.png";
@@ -14,6 +15,7 @@ import menu_5 from "./menu_5.png";
 import menu_6 from "./menu_6.png";
 import menu_7 from "./menu_7.png";
 import menu_8 from "./menu_8.png";
+import pizza_cursor from "./pizza-cursor.svg";
 
 import food_1 from "./food_1.png";
 import food_2 from "./food_2.png";
@@ -63,7 +65,7 @@ import profile_icon from "./profile_icon.png";
 import bag_icon from "./bag_icon.png";
 import logout_icon from "./logout_icon.png";
 import parcel_icon from "./parcel_icon.png";
-import pizza_cursor from "./pizza-cursor.svg";
+
 
 export const assets = {
   basket_icon,

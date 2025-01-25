@@ -115,173 +115,116 @@ io.on("connection", (socket) => {
   socket.on("userLoggedIn", async (username, userId) => {
     userContext.username = username;
     userContext.userId = userId;
-    const categories = await getCategories();
-    const categoryList = categories.map(cat => `• ${cat}`).join('\n');
-    
-    socket.emit("botMessage", 
-      `Hello ${username}! 👋 I'm your food delivery assistant.\n\n` +
-      `We offer delicious food in these categories:\n${categoryList}\n\n` +
-      `I can help you with:\n` +
-      `• Browsing menu by category\n` +
-      `• Finding specific dishes\n` +
-      `• Placing orders\n` +
-      `• Tracking deliveries\n` +
-      `• Special dietary requirements\n\n` +
-      `What would you like to do today?`
-    );
+    const greeting = `Hello ${username}! 👋 How can I help you today?\n\nYou can:\n• View our menu\n• Search for items\n• Track your order\n• Get recommendations`;
+    socket.emit("botMessage", greeting);
   });
 
-  // Handle user messages
   socket.on("userMessage", async (message) => {
     const msg = message.toLowerCase();
     userContext.lastQuery = msg;
 
-    // Handle menu-related queries
-    if (msg.includes("menu") || msg.includes("food") || msg.includes("what") || msg.includes("eat")) {
+    if (msg.includes("menu")) {
       const categories = await getCategories();
-      let response = "Here's our menu by category:\n\n";
-      
-      for (const category of categories) {
-        const items = await getMenuItems(category);
-        response += `${category}:\n`;
-        items.forEach(item => {
-          response += `• ${item.name} - ${formatPrice(item.price)}\n   ${item.description}\n`;
-        });
-        response += "\n";
-      }
-      
-      response += "Would you like to:\n" +
-                 "1. Know more about any specific dish?\n" +
-                 "2. Filter by category?\n" +
-                 "3. Place an order?\n" +
-                 "Just let me know!";
-      
-      socket.emit("botMessage", response);
-      userContext.currentStep = "menu_browsing";
+      const categoryList = categories.map(cat => `• ${cat}`).join('\n');
+      socket.emit("botMessage", 
+        `Here are our menu categories:\n\n${categoryList}\n\nWhich category would you like to explore?`);
+      userContext.currentStep = 'menu';
     }
-
-    // Handle category-specific queries
-    else if (msg.includes("show") || msg.includes("list") || msg.includes("what")) {
-      const categories = await getCategories();
-      const matchingCategory = categories.find(cat => 
-        msg.includes(cat.toLowerCase())
-      );
-
-      if (matchingCategory) {
-        const items = await getMenuItems(matchingCategory);
-        let response = `Here are our ${matchingCategory} items:\n\n`;
-        items.forEach(item => {
-          response += `• ${item.name} - ${formatPrice(item.price)}\n   ${item.description}\n\n`;
-        });
-        response += "Would you like to order any of these items?";
-        
-        socket.emit("botMessage", response);
-        userContext.lastCategory = matchingCategory;
-        userContext.currentStep = "category_browsing";
-      }
+    else if (msg.includes("search")) {
+      socket.emit("botMessage", 
+        "What kind of food are you looking for? You can describe the dish or cuisine you're interested in.");
+      userContext.currentStep = 'search';
     }
-
-    // Handle specific food item queries
-    else if (userContext.currentStep === "menu_browsing" || msg.includes("about")) {
-      const searchResults = await searchFoodItems(msg);
-      if (searchResults.length > 0) {
-        let response = "Here's what I found:\n\n";
-        searchResults.forEach(item => {
-          response += `${item.name} - ${formatPrice(item.price)}\n` +
-                     `Description: ${item.description}\n` +
-                     `Category: ${item.category}\n\n`;
-        });
-        response += "Would you like to order any of these items?";
-        socket.emit("botMessage", response);
-      } else {
-        socket.emit("botMessage", 
-          "I couldn't find any items matching your query. Would you like to:\n" +
-          "1. See the full menu?\n" +
-          "2. Browse by category?\n" +
-          "3. Try a different search?"
-        );
-      }
-    }
-
-    // Handle order-related queries
-    else if (msg.includes("order") || msg.includes("buy") || msg.includes("get")) {
-      if (msg.includes("status") || msg.includes("track")) {
+    else if (msg.includes("track")) {
+      if (userContext.userId) {
         try {
-          const order = await orderModel.findOne({ userId: userContext.userId }).sort({ createdAt: -1 });
-          if (order) {
+          const orders = await orderModel.find({ userId: userContext.userId }).sort({ date: -1 }).limit(1);
+          if (orders.length > 0) {
+            const latestOrder = orders[0];
             socket.emit("botMessage", 
-              `Your latest order #${order._id} is currently ${order.status}.\n` +
-              `${order.status === 'preparing' ? 'The restaurant is preparing your food.' :
-                order.status === 'on the way' ? 'Your food is on its way!' :
-                order.status === 'delivered' ? 'Hope you enjoyed your meal!' : ''}`
-            );
+              `Your latest order status is: ${latestOrder.status}\n\nOrder details:\n${latestOrder.items.map(item => `• ${item.name} x${item.quantity}`).join('\n')}`);
           } else {
-            socket.emit("botMessage", "I couldn't find any recent orders. Would you like to place a new order?");
+            socket.emit("botMessage", "I couldn't find any recent orders for you.");
           }
         } catch (error) {
-          socket.emit("botMessage", "I'm having trouble checking your order status. Please try again later.");
+          console.error('Error tracking order:', error);
+          socket.emit("botMessage", "Sorry, I encountered an error while tracking your order.");
         }
       } else {
-        const categories = await getCategories();
-        const categoryList = categories.map(cat => `• ${cat}`).join('\n');
-        socket.emit("botMessage", 
-          `I'll help you place an order! What type of food are you in the mood for?\n\n` +
-          `Our categories:\n${categoryList}\n\n` +
-          `Just tell me which category interests you, and I'll show you the available items!`
-        );
-        userContext.currentStep = "order_category_selection";
+        socket.emit("botMessage", "Please log in to track your orders.");
       }
     }
-
-    // Handle help or confusion
-    else if (msg.includes("help") || msg.includes("how") || msg.includes("confused")) {
-      socket.emit("botMessage",
-        "I'm here to help! You can:\n\n" +
-        "• View the full menu by saying 'show menu'\n" +
-        "• Browse specific categories like 'show Italian food'\n" +
-        "• Ask about a specific dish\n" +
-        "• Track your order status\n" +
-        "• Place a new order\n\n" +
-        "What would you like to do?"
-      );
+    else if (msg.includes("recommend")) {
+      try {
+        const foods = await foodModel.find().limit(3);
+        const recommendations = foods.map(food => 
+          `• ${food.name} - ${formatPrice(food.price)}\n  ${food.description}`
+        ).join('\n\n');
+        socket.emit("botMessage", 
+          `Here are some popular items you might like:\n\n${recommendations}`);
+      } catch (error) {
+        console.error('Error getting recommendations:', error);
+        socket.emit("botMessage", "Sorry, I couldn't fetch recommendations at the moment.");
+      }
     }
-
-    // Handle greetings
+    else if (userContext.currentStep === 'menu' && msg) {
+      const foods = await getMenuItems(msg);
+      if (foods.length > 0) {
+        const menuItems = foods.map(food => 
+          `• ${food.name} - ${formatPrice(food.price)}\n  ${food.description}`
+        ).join('\n\n');
+        socket.emit("botMessage", 
+          `Here are the items in ${msg}:\n\n${menuItems}\n\nWould you like to know more about any specific item?`);
+        userContext.lastCategory = msg;
+      } else {
+        const categories = await getCategories();
+        if (categories.some(cat => cat.toLowerCase() === msg)) {
+          socket.emit("botMessage", "Sorry, there are no items in this category at the moment.");
+        } else {
+          socket.emit("botMessage", "I couldn't find that category. Please try another one.");
+        }
+      }
+    }
+    else if (userContext.currentStep === 'search' && msg) {
+      const searchResults = await searchFoodItems(msg);
+      if (searchResults.length > 0) {
+        const results = searchResults.map(food => 
+          `• ${food.name} - ${formatPrice(food.price)}\n  ${food.description}`
+        ).join('\n\n');
+        socket.emit("botMessage", 
+          `Here's what I found:\n\n${results}\n\nWould you like to know more about any of these items?`);
+      } else {
+        socket.emit("botMessage", 
+          "I couldn't find any items matching your search. Would you like to try different keywords?");
+      }
+    }
     else if (msg.includes("hi") || msg.includes("hello") || msg.includes("hey")) {
       const categories = await getCategories();
       const categoryList = categories.map(cat => `• ${cat}`).join('\n');
       socket.emit("botMessage",
         `Hi there! 👋 We have these delicious categories:\n\n${categoryList}\n\n` +
-        `What would you like to try today?`
-      );
+        `What would you like to explore?`);
     }
-
-    // Handle goodbyes
-    else if (msg.includes("bye") || msg.includes("goodbye") || msg.includes("thank")) {
-      socket.emit("botMessage", "Thank you for chatting! If you need anything else, I'm here to help. Enjoy your meal! 😊");
-    }
-
-    // Handle unknown queries
     else {
-      socket.emit("botMessage",
-        "I'm not sure what you're looking for. You can:\n" +
-        "• View our menu\n" +
-        "• Browse by category\n" +
-        "• Search for specific dishes\n" +
-        "• Track your order\n\n" +
-        "How can I help you today?"
-      );
+      socket.emit("botMessage", 
+        "I'm here to help! You can:\n• View our menu\n• Search for items\n• Track your order\n• Get recommendations");
     }
   });
 
   // Handle user disconnects
   socket.on("disconnect", () => {
     console.log("User disconnected");
-    userContext = null;
+    userContext = {
+      currentStep: null,
+      orderInProgress: null,
+      selectedItems: [],
+      lastQuery: null,
+      userId: null
+    };
   });
 });
 
-// Start the server
+// Start the server using the HTTP server instance
 server.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
