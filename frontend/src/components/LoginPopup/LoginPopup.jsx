@@ -100,35 +100,31 @@ const LoginPopup = ({ setShowLogin }) => {
               value={data.password}
               type="password"
               id="myPassword"
-              placeholder="Enter Password"
+              placeholder="Enter password"
               required
             />
+            <div className="show-hide-password">
+              <input type="checkbox" id="showPassword" onClick={showHide} />
+              <label htmlFor="showPassword">Show/Hide Password</label>
+            </div>
           </div>
         </div>
 
-        <div className="showhide">
-          <input type="checkbox" onClick={showHide} />
-          <p>show & hide</p>
-        </div>
-
         <button type="submit" disabled={loading}>
-          {loading ? <div className="spinner"></div> : currState === "Sign Up" ? "Create account" : "Login"}
+          {loading ? "Processing..." : currState === "Sign Up" ? "Create account" : "Login"}
         </button>
 
-        <div className="login-popup-condition">
-          <input type="checkbox" required />
+        <div className="terms-privacy">
+          <input type="checkbox" id="terms" required />
           <p>By continuing, I agree to the terms of use & privacy policy</p>
         </div>
 
-        {currState === "Login" ? (
-          <p>
-            Create a new account? <span onClick={() => setCurrState("Sign Up")}>Click here</span>
-          </p>
-        ) : (
-          <p>
-            Already have an account? <span onClick={() => setCurrState("Login")}>Login here</span>
-          </p>
-        )}
+        <p className="toggle-state">
+          {currState === "Login" ? "Don't have an account? " : "Already have an account? "}
+          <span onClick={() => setCurrState(currState === "Login" ? "Sign Up" : "Login")}>
+            {currState === "Login" ? "Create Account" : "Login here"}
+          </span>
+        </p>
       </form>
     </div>
   );

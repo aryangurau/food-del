@@ -1,129 +1,319 @@
 .login-popup {
-  position: absolute;
-  z-index: 2;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: #00000090;
-  display: grid;
+  background: rgba(17, 24, 39, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
 }
+
 .login-popup-container {
-  place-self: center;
-  width: max(23vw, 330px);
-  color: #808080;
-  background-color: white;
+  width: 90%;
+  max-width: 420px;
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+              0 8px 24px -12px rgba(0, 0, 0, 0.15);
+  transform-origin: center;
+  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.login-popup-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.login-popup-title h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: tomato;
+  margin: 0;
+  background: linear-gradient(135deg, #ff4b2b, #ff416c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.login-popup-title img {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  filter: brightness(0) invert(1);
+}
+
+.login-popup-title img:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.login-popup-inputs {
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  padding: 25px 30px;
-  border-radius: 8px;
-  font-size: 14px;
-  animation:fadeIn 0.5s;
-}
-.login-popup-title{
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: black;  
+  gap: 16px;
 }
 
-.login-popup-title img{
-    width: 16px;
-    cursor: pointer;
-}
-.login-popup-inputs{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
 .input-container {
   position: relative;
 }
 
 .input-container input {
   width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.3s ease;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.input-container input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.input-container input:hover {
+  border-color: #d1d5db;
+  background: #ffffff;
 }
 
 .input-container input:focus {
   outline: none;
-  border-color: #ff4d4d;
-  box-shadow: 0 0 0 2px rgba(255, 77, 77, 0.1);
+  border-color: #ff416c;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 65, 108, 0.1);
 }
 
-.input-container input::placeholder {
-  color: #999;
+.login-popup button[type="submit"] {
+  width: 100%;
+  padding: 16px;
+  margin-top: 24px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff4b2b, #ff416c);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.input-container input[type="tel"] {
-  letter-spacing: 0.5px;
+.login-popup button[type="submit"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
 }
 
-.login-popup-inputs input{
-outline: none;
-border: 1px solid #c9c9c9;
-padding: 10px;
-border-radius: 4px;
-}
-.login-popup-container button{
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    color: whitesmoke;
-    background-color: tomato;
-    font-size: 15px;
-    cursor: pointer;
-
-}
-.login-popup-container button:hover{
-    color: whitesmoke;
-    background-color: rgb(228, 45, 12);
-
-}
-.login-popup-condition{
-    display: flex;
-    align-items: start;
-    gap: 8px;
-    margin-top: -15px;
-}
-.login-popup-condition input{
-    margin-top: 5px;
-}
-.login-popup p span{
-    color: tomato;
-    font-weight: 500;
-    cursor: pointer;
-}
-.showhide{
-    display: flex;
-    align-items: start;
-    gap: 8px;
-    margin-top: -15px;
-}
-.showhide input{
-    margin-top: 4px;
+.login-popup button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(255, 65, 108, 0.5);
 }
 
-.spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
+.login-popup button[type="submit"]:hover::before {
+  left: 100%;
+}
+
+.login-popup button[type="submit"]:disabled {
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  transform: none;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.toggle-state {
+  margin-top: 20px;
+  text-align: center;
+  color: white;
+  font-size: 14px;
+}
+
+.toggle-state span {
+  color: tomato;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-state span:hover {
+  color: #ff4b2b;
+  text-decoration: underline;
+}
+
+.show-hide-password {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: right;
+  justify-content: flex-end;
+}
+
+.show-hide-password input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: tomato;
+}
+
+.show-hide-password label {
+  cursor: pointer;
+}
+
+.show-hide-password:hover label {
+  color: tomato;
+}
+
+.terms-privacy {
+  margin-top: 16px;
+  font-size: 14px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terms-privacy input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: tomato;
+}
+
+.terms-privacy p {
+  margin: 0;
+  color: white;
+  opacity: 0.9;
+}
+
+.error-message {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 16px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .login-popup-container {
+    width: 95%;
+    padding: 24px;
   }
-  
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+
+  .login-popup-title h2 {
+    font-size: 24px;
   }
-  
+
+  .input-container input {
+    padding: 14px;
+    font-size: 14px;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .login-popup-container {
+    background: #1f2937;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 8px 24px -12px rgba(0, 0, 0, 0.3);
+  }
+
+  .login-popup-title h2 {
+    background: linear-gradient(135deg, #ff6b6b, #ff416c);
+    -webkit-background-clip: text;
+  }
+
+  .login-popup-title img {
+    background: rgba(255, 255, 255, 0.1);
+    filter: brightness(0) invert(1);
+  }
+
+  .login-popup-title img:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .input-container input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
+  }
+
+  .input-container input::placeholder {
+    color: #9ca3af;
+  }
+
+  .input-container input:hover {
+    border-color: #6b7280;
+    background: #4b5563;
+  }
+
+  .input-container input:focus {
+    border-color: #ff416c;
+    background: #4b5563;
+  }
+
+  .toggle-state {
+    color: white;
+  }
+
+  .show-hide-password {
+    color: white;
+  }
+
+  .error-message {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.2);
+    color: #ef4444;
+  }
+}
