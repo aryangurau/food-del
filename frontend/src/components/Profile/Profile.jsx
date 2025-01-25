@@ -18,16 +18,19 @@ const Profile = () => {
         const fetchUserDetails = async () => {
             try {
                 // Fetch recent orders
-                const ordersResponse = await axios.get(`${url}/api/order/user-orders`, {
-                    headers: { token: localStorage.getItem('token') }
-                });
+                const ordersResponse = await axios.post(`${url}/api/order/userorders`, 
+                    { userId: user._id },
+                    {
+                        headers: { token: localStorage.getItem('token') }
+                    }
+                );
                 
                 if (ordersResponse.data.success) {
-                    setRecentOrders(ordersResponse.data.orders.slice(0, 5)); // Get last 5 orders
+                    const allOrders = ordersResponse.data.data;
+                    setRecentOrders(allOrders.slice(0, 5)); // Get last 5 orders
                     
                     // Calculate statistics
-                    const allOrders = ordersResponse.data.orders;
-                    const totalSpent = allOrders.reduce((sum, order) => sum + order.total, 0);
+                    const totalSpent = allOrders.reduce((sum, order) => sum + order.amount, 0);
                     
                     // Calculate favorite items
                     const itemCounts = {};
@@ -59,18 +62,16 @@ const Profile = () => {
     }, [user, url]);
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'NPR'
-        }).format(amount);
+        return `NPR ${amount.toFixed(2)}`;
     };
 
     if (!user) {
@@ -79,113 +80,90 @@ const Profile = () => {
 
     return (
         <div className="profile-container">
-            {/* Profile Header */}
             <div className="profile-header">
-                <div className="profile-cover"></div>
-                <div className="profile-info-main">
-                    <div className="profile-picture-large">
-                        <img 
-                            src={user.profilePicture || assets.profile_icon} 
-                            alt="Profile"
-                        />
-                    </div>
-                    <div className="profile-title">
-                        <h1>{user.name}</h1>
-                        <p className="member-since">Member since {formatDate(user.createdAt)}</p>
-                    </div>
+                <div className="profile-picture">
+                    <img src={user.profilePicture || assets.user} alt={user.name} />
+                </div>
+                <div className="profile-info">
+                    <h1>{user.name}</h1>
+                    <p className="member-since">Member since {formatDate(user.createdAt || new Date())}</p>
                 </div>
             </div>
 
-            <div className="profile-content">
-                {/* Personal Information */}
+            <div className="profile-sections">
                 <div className="profile-section">
                     <h2>Personal Information</h2>
                     <div className="info-grid">
                         <div className="info-item">
-                            <span className="label">Full Name</span>
-                            <span className="value">{user.name}</span>
+                            <label>Email:</label>
+                            <p>{user.email}</p>
                         </div>
                         <div className="info-item">
-                            <span className="label">Email</span>
-                            <span className="value">{user.email}</span>
+                            <label>Phone:</label>
+                            <p>{user.phone || 'Not provided'}</p>
                         </div>
                         <div className="info-item">
-                            <span className="label">Phone</span>
-                            <span className="value">{user.phone || 'Not provided'}</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="label">Address</span>
-                            <span className="value">{user.address || 'Not provided'}</span>
+                            <label>Address:</label>
+                            <p>{user.address || 'Not provided'}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Account Statistics */}
                 <div className="profile-section">
                     <h2>Account Statistics</h2>
                     <div className="stats-grid">
                         <div className="stat-card">
-                            <span className="stat-value">{stats.totalOrders}</span>
-                            <span className="stat-label">Total Orders</span>
+                            <h3>Total Orders</h3>
+                            <p>{stats.totalOrders}</p>
                         </div>
                         <div className="stat-card">
-                            <span className="stat-value">{formatCurrency(stats.totalSpent)}</span>
-                            <span className="stat-label">Total Spent</span>
+                            <h3>Total Spent</h3>
+                            <p>{formatCurrency(stats.totalSpent)}</p>
                         </div>
                         <div className="stat-card">
-                            <span className="stat-value">{recentOrders.length}</span>
-                            <span className="stat-label">Recent Orders</span>
+                            <h3>Recent Orders</h3>
+                            <p>{recentOrders.length}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Favorite Items */}
-                {stats.favoriteItems.length > 0 && (
+                {recentOrders.length > 0 && (
                     <div className="profile-section">
-                        <h2>Your Favorite Items</h2>
-                        <div className="favorite-items">
-                            {stats.favoriteItems.map((item, index) => (
-                                <div key={index} className="favorite-item">
-                                    <span>{item}</span>
+                        <h2>Recent Orders</h2>
+                        <div className="orders-list">
+                            {recentOrders.map((order) => (
+                                <div key={order._id} className="order-card">
+                                    <div className="order-header">
+                                        <span className="order-date">{formatDate(order.createdAt)}</span>
+                                        <span className={`order-status status-${order.status?.toLowerCase()}`}>
+                                            {order.status || 'Processing'}
+                                        </span>
+                                    </div>
+                                    <div className="order-items">
+                                        {order.items.map((item, index) => (
+                                            <div key={index} className="order-item">
+                                                <img 
+                                                    src={item.image || assets.food_placeholder} 
+                                                    alt={item.name} 
+                                                    className="item-image"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = assets.food_placeholder;
+                                                    }}
+                                                />
+                                                <span className="item-name">{item.name}</span>
+                                                <span className="item-quantity">x{item.quantity}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="order-footer">
+                                        <span className="order-total">{formatCurrency(order.amount)}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
-
-                {/* Recent Orders */}
-                <div className="profile-section">
-                    <h2>Recent Orders</h2>
-                    {recentOrders.length > 0 ? (
-                        <div className="recent-orders">
-                            {recentOrders.map((order) => (
-                                <div key={order._id} className="order-card">
-                                    <div className="order-header">
-                                        <span className="order-date">{formatDate(order.createdAt)}</span>
-                                        <span className="order-total">{formatCurrency(order.total)}</span>
-                                    </div>
-                                    <div className="order-items">
-                                        {order.items.map((item, index) => (
-                                            <span key={index} className="order-item">
-                                                {item.name} x {item.quantity}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <div className="order-status">
-                                        Status: <span className={`status-${order.status.toLowerCase()}`}>
-                                            {order.status}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="no-orders">No recent orders found.</p>
-                    )}
-                    <Link to="/myorders" className="view-all-orders">
-                        View All Orders
-                    </Link>
-                </div>
             </div>
         </div>
     );

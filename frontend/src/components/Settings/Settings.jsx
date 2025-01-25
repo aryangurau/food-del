@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { StoreContext } from '../../context/StoreContext';
 import axios from 'axios';
 import './Settings.css';
@@ -7,10 +7,10 @@ import { toast } from 'react-hot-toast';
 const Settings = () => {
     const { user, setUser, url } = useContext(StoreContext);
     const [formData, setFormData] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        phone: user?.phone || '',
-        address: user?.address || '',
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -18,6 +18,22 @@ const Settings = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [profileImage, setProfileImage] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
+
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                address: user.address || ''
+            }));
+            if (user.profilePicture) {
+                setPreviewImage(user.profilePicture);
+            }
+        }
+    }, [user]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -28,8 +44,15 @@ const Settings = () => {
     };
 
     const handleImageChange = (e) => {
-        if (e.target.files[0]) {
-            setProfileImage(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            setProfileImage(file);
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -48,20 +71,38 @@ const Settings = () => {
                 formDataToSend.append('profilePicture', profileImage);
             }
 
-            const response = await axios.put(`${url}/api/user/update-profile`, formDataToSend, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'token': localStorage.getItem('token')
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Please login to update your profile');
+                return;
+            }
+
+            const response = await axios.put(
+                `${url}/api/user/profile/update`,
+                formDataToSend,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'token': token
+                    }
                 }
-            });
+            );
 
             if (response.data.success) {
                 setUser(response.data.user);
                 toast.success('Profile updated successfully!');
                 setIsEditing(false);
+            } else {
+                toast.error(response.data.message || 'Error updating profile');
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Error updating profile');
+            console.error('Profile update error:', error);
+            if (error.response?.status === 401) {
+                toast.error('Session expired. Please login again.');
+                // Optional: Redirect to login page or clear user session
+            } else {
+                toast.error(error.response?.data?.message || 'Error updating profile');
+            }
         }
         setLoading(false);
     };
@@ -75,15 +116,22 @@ const Settings = () => {
 
         setLoading(true);
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Please login to change your password');
+                return;
+            }
+
             const response = await axios.put(
-                `${url}/api/user/change-password`,
+                `${url}/api/user/profile/change-password`,
                 {
                     currentPassword: formData.currentPassword,
                     newPassword: formData.newPassword
                 },
                 {
                     headers: {
-                        'token': localStorage.getItem('token')
+                        'Content-Type': 'application/json',
+                        'token': token
                     }
                 }
             );
@@ -96,12 +144,24 @@ const Settings = () => {
                     newPassword: '',
                     confirmPassword: ''
                 }));
+            } else {
+                toast.error(response.data.message || 'Error changing password');
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Error changing password');
+            console.error('Password change error:', error);
+            if (error.response?.status === 401) {
+                toast.error('Session expired. Please login again.');
+                // Optional: Redirect to login page or clear user session
+            } else {
+                toast.error(error.response?.data?.message || 'Error changing password');
+            }
         }
         setLoading(false);
     };
+
+    if (!user) {
+        return <div className="settings-container">Please log in to access settings.</div>;
+    }
 
     return (
         <div className="settings-container">
@@ -112,12 +172,21 @@ const Settings = () => {
                 <form onSubmit={handleSubmit} className="settings-form">
                     <div className="form-group">
                         <label>Profile Picture</label>
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            disabled={!isEditing}
-                        />
+                        <div className="profile-image-container">
+                            {previewImage && (
+                                <img 
+                                    src={previewImage} 
+                                    alt="Profile Preview" 
+                                    className="profile-preview"
+                                />
+                            )}
+                            <input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                disabled={!isEditing}
+                            />
+                        </div>
                     </div>
                     
                     <div className="form-group">
@@ -128,6 +197,7 @@ const Settings = () => {
                             value={formData.name}
                             onChange={handleInputChange}
                             disabled={!isEditing}
+                            required
                         />
                     </div>
 
@@ -139,6 +209,7 @@ const Settings = () => {
                             value={formData.email}
                             onChange={handleInputChange}
                             disabled={!isEditing}
+                            required
                         />
                     </div>
 
@@ -175,7 +246,18 @@ const Settings = () => {
                                 </button>
                                 <button 
                                     type="button" 
-                                    onClick={() => setIsEditing(false)}
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        setFormData({
+                                            ...formData,
+                                            name: user.name || '',
+                                            email: user.email || '',
+                                            phone: user.phone || '',
+                                            address: user.address || ''
+                                        });
+                                        setPreviewImage(user.profilePicture);
+                                        setProfileImage(null);
+                                    }}
                                     className="cancel-btn"
                                 >
                                     Cancel
@@ -196,6 +278,7 @@ const Settings = () => {
                             name="currentPassword"
                             value={formData.currentPassword}
                             onChange={handleInputChange}
+                            required
                         />
                     </div>
 
@@ -206,6 +289,8 @@ const Settings = () => {
                             name="newPassword"
                             value={formData.newPassword}
                             onChange={handleInputChange}
+                            required
+                            minLength={6}
                         />
                     </div>
 
@@ -216,6 +301,8 @@ const Settings = () => {
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleInputChange}
+                            required
+                            minLength={6}
                         />
                     </div>
 
