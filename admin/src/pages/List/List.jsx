@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaEdit } from 'react-icons/fa';
 import { toast } from "react-toastify";
+import EditFoodModal from '../../components/EditFoodModal/EditFoodModal';
 import "./List.css";
 
 const List = ({ url }) => {
@@ -14,6 +15,7 @@ const List = ({ url }) => {
     totalItems: 0,
     itemsPerPage: 10
   });
+  const [editingFood, setEditingFood] = useState(null);
 
   useEffect(() => {
     fetchFoodItems();
@@ -28,6 +30,7 @@ const List = ({ url }) => {
       }
     } catch (error) {
       console.error('Error fetching food items:', error);
+      toast.error("Error fetching food items");
     } finally {
       setLoading(false);
     }
@@ -38,12 +41,23 @@ const List = ({ url }) => {
       const response = await axios.post(`${url}/api/food/remove`, { id: id });
       if (response.data.success) {
         setFoodItems(foodItems.filter(item => item._id !== id));
-        toast.success(response.data.message);
+        toast.success("Food item deleted successfully");
       }
     } catch (error) {
       console.error('Error deleting food item:', error);
-      toast.error("Error");
+      toast.error("Error deleting food item");
     }
+  };
+
+  const handleEdit = (food) => {
+    setEditingFood(food);
+  };
+
+  const handleUpdate = (updatedFood) => {
+    setFoodItems(foodItems.map(item => 
+      item._id === updatedFood._id ? updatedFood : item
+    ));
+    toast.success("Food item updated successfully");
   };
 
   const handlePageChange = (page) => {
@@ -73,7 +87,7 @@ const List = ({ url }) => {
               <th>Name</th>
               <th>Category</th>
               <th>Price</th>
-              <th>Action</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -95,9 +109,16 @@ const List = ({ url }) => {
                 <td>
                   <span className="price">${item.price}</span>
                 </td>
-                <td>
+                <td className="actions-cell">
                   <button
-                    className="action-btn"
+                    className="action-btn edit"
+                    onClick={() => handleEdit(item)}
+                    title="Edit item"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className="action-btn delete"
                     onClick={() => handleDelete(item._id)}
                     title="Delete item"
                   >
@@ -144,6 +165,15 @@ const List = ({ url }) => {
       <div className="pagination-info">
         Showing {((currentPage - 1) * pagination.itemsPerPage) + 1} to {Math.min(currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} items
       </div>
+
+      {editingFood && (
+        <EditFoodModal
+          food={editingFood}
+          onClose={() => setEditingFood(null)}
+          onUpdate={handleUpdate}
+          url={url}
+        />
+      )}
     </div>
   );
 };
