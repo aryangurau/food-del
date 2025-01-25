@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AppProvider } from './context/AppContext';
+import { StoreContext } from './context/StoreContext';
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
 import Menu from "./pages/Menu/Menu";
@@ -23,6 +24,17 @@ const App = () => {
 
   return (
     <AppProvider>
+      <AppContent showLogin={showLogin} setShowLogin={setShowLogin} />
+    </AppProvider>
+  );
+};
+
+// Separate component to use StoreContext
+const AppContent = ({ showLogin, setShowLogin }) => {
+  const { token } = useContext(StoreContext);
+
+  return (
+    <>
       <Toaster
         position="top-right"
         reverseOrder={false}
@@ -90,9 +102,9 @@ const App = () => {
         </Routes>
       </div>
       <Footer />
-      {/* Chatbot */}
-      <ChatComponent />
-    </AppProvider>
+      {/* Chatbot - only show when logged in */}
+      {token && <ChatComponent />}
+    </>
   );
 };
 

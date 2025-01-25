@@ -5,8 +5,8 @@ import { StoreContext } from "../../context/StoreContext";
 import { jwtDecode } from "jwt-decode";
 import { assets } from "../../assets/assets";
 
-// Establish a Socket.IO connection
-const socket = io("http://localhost:4000");
+// Initialize socket outside component to prevent multiple connections
+let socket;
 
 const ChatComponent = () => {
   const { token } = useContext(StoreContext);
@@ -14,7 +14,8 @@ const ChatComponent = () => {
   const [input, setInput] = useState("");
   const [botTyping, setBotTyping] = useState(false);
   const [isGreetingReceived, setIsGreetingReceived] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(true);
+  const [isMinimized, setIsMinimized] = useState(true); // Start minimized
+  const [isVisible, setIsVisible] = useState(false); // New state for controlling visibility
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -25,14 +26,28 @@ const ChatComponent = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Effect to run on token change (either login or logout)
+  // Effect to handle delayed appearance
   useEffect(() => {
-    setMessages([]);
-    setInput("");
-    setIsGreetingReceived(false);
-    setBotTyping(false);
-
     if (token) {
+      // Show component immediately but keep it minimized
+      setIsVisible(true);
+      // After 2 seconds, open the chat
+      const timer = setTimeout(() => {
+        setIsMinimized(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+      setIsMinimized(true);
+    }
+  }, [token]);
+
+  // Effect to initialize socket connection
+  useEffect(() => {
+    if (token) {
+      // Initialize socket connection
+      socket = io("http://localhost:4000");
+      
       let displayName = "Guest";
       let userId = null;
       try {
@@ -47,19 +62,29 @@ const ChatComponent = () => {
       socket.emit("userLoggedIn", displayName, userId);
       console.log("User logged in as:", displayName);
 
+      // Set up socket event listeners
       socket.on("botMessage", (message) => {
         setBotTyping(true);
         setTimeout(() => {
           simulateTypingEffect("bot", message);
         }, getRandomTypingDelay());
       });
-    } else {
-      socket.emit("userLoggedOut");
-    }
 
-    return () => {
-      socket.off("botMessage");
-    };
+      // Reset chat state
+      setMessages([]);
+      setInput("");
+      setIsGreetingReceived(false);
+      setBotTyping(false);
+
+      // Cleanup function
+      return () => {
+        if (socket) {
+          socket.emit("userLoggedOut");
+          socket.off("botMessage");
+          socket.disconnect();
+        }
+      };
+    }
   }, [token]);
 
   const simulateTypingEffect = (sender, text) => {
@@ -72,7 +97,7 @@ const ChatComponent = () => {
         clearInterval(typingInterval);
         setBotTyping(false);
       }
-    }, 30); // Faster typing speed
+    }, 30);
   };
 
   const addMessage = (sender, text, isTyping = false) => {
@@ -84,11 +109,11 @@ const ChatComponent = () => {
   };
 
   const getRandomTypingDelay = () => {
-    return Math.floor(Math.random() * 500) + 500; // Faster response time
+    return Math.floor(Math.random() * 500) + 500;
   };
 
   const handleSend = () => {
-    if (input.trim()) {
+    if (input.trim() && socket) {
       addMessage("user", input);
       socket.emit("userMessage", input);
       setInput("");
@@ -112,6 +137,8 @@ const ChatComponent = () => {
       minute: '2-digit',
     }).format(new Date(timestamp));
   };
+
+  if (!isVisible) return null;
 
   return (
     <div className={`chat-container ${isMinimized ? "minimized" : ""}`}>

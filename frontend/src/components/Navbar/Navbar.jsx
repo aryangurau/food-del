@@ -51,6 +51,7 @@ const Navbar = ({ setShowLogin }) => {
     setToken("");
     setIsProfileOpen(false);
     navigate("/");
+    setShowLogin(true);
   };
 
   const handleSearchIconClick = () => {
