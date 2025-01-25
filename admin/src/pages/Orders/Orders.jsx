@@ -162,6 +162,16 @@ const Orders = ({ url }) => {
                         <option value="failed">Failed</option>
                       </select>
                     </p>
+                    <div className="order-items-list">
+                      <strong>Items:</strong>
+                      <ul>
+                        {order.items?.map((item, index) => (
+                          <li key={index}>
+                            {item.name} × {item.quantity}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
 
