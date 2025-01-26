@@ -4,12 +4,17 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaBox, FaSpinner } from 'react-icons/fa';
 import { useAdminAuth } from "../../context/AdminAuthContext";
+import Pagination from "../../components/Pagination/Pagination";
+
+const ORDERS_PER_PAGE = 5;
 
 const Orders = ({ url }) => {
   const { adminToken } = useAdminAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchAllOrders = async () => {
     try {
@@ -26,7 +31,9 @@ const Orders = ({ url }) => {
       );
       
       if (response.data.success) {
-        setOrders(response.data.data || []);
+        const allOrders = response.data.data || [];
+        setOrders(allOrders);
+        setTotalPages(Math.ceil(allOrders.length / ORDERS_PER_PAGE));
       } else {
         throw new Error(response.data.message || "Failed to fetch orders");
       }
@@ -75,30 +82,14 @@ const Orders = ({ url }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
-  const formatAddress = (address) => {
-    if (!address) return <p>No address available</p>;
-    
-    return (
-      <div className="address-details">
-        <p><strong>Name:</strong> {address.name || 'N/A'}</p>
-        <p><strong>Phone:</strong> {address.phone || 'N/A'}</p>
-        <p><strong>Street:</strong> {address.street || 'N/A'}</p>
-        <p><strong>City:</strong> {address.city || 'N/A'}</p>
-        <p><strong>State:</strong> {address.state || 'N/A'}</p>
-        <p><strong>Country:</strong> {address.country || 'N/A'}</p>
-      </div>
-    );
+  const getPaginatedOrders = () => {
+    const startIndex = (currentPage - 1) * ORDERS_PER_PAGE;
+    const endIndex = startIndex + ORDERS_PER_PAGE;
+    return orders.slice(startIndex, endIndex);
   };
 
   if (loading) {
@@ -130,7 +121,7 @@ const Orders = ({ url }) => {
       </div>
 
       <div className="orders-list">
-        {orders.map((order) => (
+        {getPaginatedOrders().map((order) => (
           <div key={order._id} className={`order-item ${(order.status || '').toLowerCase()}`}>
             <div className="order-icon">
               <FaBox />
@@ -162,16 +153,6 @@ const Orders = ({ url }) => {
                         <option value="failed">Failed</option>
                       </select>
                     </p>
-                    <div className="order-items-list">
-                      <strong>Items:</strong>
-                      <ul>
-                        {order.items?.map((item, index) => (
-                          <li key={index}>
-                            {item.name} × {item.quantity}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
                   </div>
                 </div>
 
@@ -199,9 +180,11 @@ const Orders = ({ url }) => {
                   <h4>Order Items</h4>
                   <div className="items-list">
                     {(order.items || []).map((item, index) => (
-                      <span key={index} className="item">
-                        {item.name || 'Unknown'} × {item.quantity || 0}
-                      </span>
+                      <div key={index} className="item">
+                        <span>{item.name}</span>
+                        <span>×{item.quantity}</span>
+                        <span>₹{item.price}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -226,6 +209,16 @@ const Orders = ({ url }) => {
           </div>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          itemsPerPage={ORDERS_PER_PAGE}
+          totalItems={orders.length}
+        />
+      )}
     </div>
   );
 };
