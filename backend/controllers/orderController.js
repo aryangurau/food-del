@@ -248,7 +248,7 @@ const placeInstantOrder = async (req, res) => {
       address,
       paymentMethod,
       status: "preparing",
-      paymentStatus: "completed" // Mark as paid for instant payment methods
+      paymentStatus: paymentMethod === 'cash' ? "pending" : "completed" // Set pending for COD
     });
 
     await order.save();

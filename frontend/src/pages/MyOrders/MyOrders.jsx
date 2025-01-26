@@ -5,7 +5,16 @@ import axios from "axios";
 import { assets } from "../../assets/assets";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { FaBox, FaClock, FaMotorcycle, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { 
+  FaBox, 
+  FaClock, 
+  FaMotorcycle, 
+  FaCheckCircle, 
+  FaTimesCircle,
+  FaMoneyBill,
+  FaSpinner,
+  FaCreditCard
+} from 'react-icons/fa';
 
 const MyOrders = () => {
   const { url, token } = useContext(StoreContext);
@@ -89,6 +98,19 @@ const MyOrders = () => {
         return <FaTimesCircle />;
       default:
         return <FaClock />;
+    }
+  };
+
+  const getPaymentStatusIcon = (status, method) => {
+    switch(status.toLowerCase()) {
+      case 'completed':
+        return <FaCheckCircle />;
+      case 'pending':
+        return method === 'cash' ? <FaMoneyBill /> : <FaSpinner />;
+      case 'failed':
+        return <FaTimesCircle />;
+      default:
+        return <FaCreditCard />;
     }
   };
 
@@ -178,8 +200,9 @@ const MyOrders = () => {
                 <p className="order-count">Items: <span>{order.items.length}</span></p>
                 <p className="order-payment">
                   Payment: <span>{order.paymentMethod}</span>
-                  <span className={`payment-status ${order.paymentStatus}`}>
-                    ({order.paymentStatus})
+                  <span className={`payment-status ${order.paymentStatus?.toLowerCase()}`}>
+                    {getPaymentStatusIcon(order.paymentStatus, order.paymentMethod)}
+                    <span className="status-text">{order.paymentStatus}</span>
                   </span>
                 </p>
               </div>

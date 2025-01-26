@@ -276,6 +276,41 @@
   cursor: not-allowed;
 }
 
+/* Payment status styles */
+.payment-status {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.payment-status svg {
+  font-size: 1em;
+}
+
+.payment-status .status-text {
+  margin-left: 4px;
+}
+
+.payment-status.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.payment-status.completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.payment-status.failed {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
 @media (max-width: 768px) {
   .my-orders {
     padding: 0 15px;

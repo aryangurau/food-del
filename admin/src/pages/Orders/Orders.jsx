@@ -148,7 +148,7 @@ const Orders = ({ url }) => {
                 <div className="info-group">
                   <h4>Order Details</h4>
                   <div className="order-details">
-                    <p><strong>Amount:</strong> {order.amount}</p>
+                    <p><strong>Amount:</strong> ₹{order.totalAmount}</p>
                     <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleString()}</p>
                     <p>
                       <strong>Payment:</strong>
