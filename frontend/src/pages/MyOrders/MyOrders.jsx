@@ -5,6 +5,7 @@ import axios from "axios";
 import { assets } from "../../assets/assets";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { FaBox, FaClock, FaMotorcycle, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 const MyOrders = () => {
   const { url, token } = useContext(StoreContext);
@@ -73,6 +74,23 @@ const MyOrders = () => {
     }
   };
 
+  const getStatusIcon = (status) => {
+    switch(status.toLowerCase()) {
+      case 'pending':
+        return <FaClock />;
+      case 'preparing':
+        return <FaBox />;
+      case 'on the way':
+        return <FaMotorcycle />;
+      case 'delivered':
+        return <FaCheckCircle />;
+      case 'cancelled':
+        return <FaTimesCircle />;
+      default:
+        return <FaClock />;
+    }
+  };
+
   useEffect(() => {
     if (!token) {
       toast.error("Please login to view your orders");
@@ -85,8 +103,14 @@ const MyOrders = () => {
   if (loading) {
     return (
       <div className="my-orders">
-        <h2>My Orders</h2>
-        <div className="loading-spinner">Loading orders...</div>
+        <div className="my-orders-header">
+          <img src={assets.chicken} alt="Orders" className="header-icon" />
+          <h2>My Orders</h2>
+        </div>
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Fetching your orders...</p>
+        </div>
       </div>
     );
   }
@@ -94,10 +118,17 @@ const MyOrders = () => {
   if (orders.length === 0) {
     return (
       <div className="my-orders">
-        <h2>My Orders</h2>
+        <div className="my-orders-header">
+          <img src={assets.chicken} alt="Orders" className="header-icon" />
+          <h2>My Orders</h2>
+        </div>
         <div className="no-orders">
-          <p>You haven't placed any orders yet.</p>
-          <button onClick={() => navigate("/")}>Browse Menu</button>
+          <img src={assets.parcel_icon} alt="No orders" className="no-orders-icon" />
+          <h3>No Orders Yet!</h3>
+          <p>Looks like you haven't placed any orders. Let's change that!</p>
+          <button onClick={() => navigate("/")} className="browse-menu-btn">
+            Browse Menu
+          </button>
         </div>
       </div>
     );
@@ -105,34 +136,41 @@ const MyOrders = () => {
 
   return (
     <div className="my-orders">
-      <h2>My Orders</h2>
+      <div className="my-orders-header">
+        <img src={assets.chicken} alt="Orders" className="header-icon" />
+        <h2>My Orders</h2>
+      </div>
       <div className="container">
         {orders.map((order) => (
-          <div className="my-orders-order" key={order._id}>
-            <img src={assets.parcel_icon} alt="" />
-            <div className="order-details">
-              <p className="order-items">
-                {order.items.map((item, index) => (
-                  <span key={item._id}>
-                    {item.name} × {item.quantity}
-                    {index < order.items.length - 1 ? ", " : ""}
-                  </span>
-                ))}
-              </p>
-              <p className="order-amount">Total: ${order.amount.toFixed(2)}</p>
-              <p className="order-count">Items: {order.items.length}</p>
-              <p className={`status ${order.status.toLowerCase()}`}>
-                <span>●</span>
-                <b>{order.status}</b>
-              </p>
+          <div key={order._id} className="my-orders-order">
+            <div className="order-info">
+              <img src={assets.parcel_icon} alt={order.name} />
+              <div className="order-details">
+                <p className="order-items">
+                  {order.items.map((item, index) => (
+                    <span key={item._id}>
+                      {item.name} × {item.quantity}
+                      {index < order.items.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </p>
+                <p className="order-amount">Total: ${order.amount.toFixed(2)}</p>
+                <p className="order-count">Items: {order.items.length}</p>
+              </div>
             </div>
-            <button 
-              onClick={() => trackOrder(order._id)}
-              disabled={trackingId === order._id}
-              className={trackingId === order._id ? "loading" : ""}
-            >
-              {trackingId === order._id ? "Tracking..." : "Track Order"}
-            </button>
+            <div className="order-status">
+              <div className={`status ${order.status.toLowerCase().replace(' ', '')}`}>
+                {getStatusIcon(order.status)}
+                <span>{order.status}</span>
+              </div>
+              <button 
+                onClick={() => trackOrder(order._id)}
+                disabled={trackingId === order._id}
+                className="track-button"
+              >
+                {trackingId === order._id ? 'Tracking...' : 'Track Order'}
+              </button>
+            </div>
           </div>
         ))}
       </div>
