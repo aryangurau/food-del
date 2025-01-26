@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema({
-  _id: {
+  productId: {
     type: String,
     required: true
   },
@@ -70,7 +70,7 @@ const orderSchema = new mongoose.Schema({
       message: 'Order must have at least one item'
     }
   },
-  amount: {
+  totalAmount: {
     type: Number,
     required: true,
     min: [0, 'Amount cannot be negative']
@@ -82,6 +82,11 @@ const orderSchema = new mongoose.Schema({
   },
   address: {
     type: addressSchema,
+    required: true
+  },
+  paymentMethod: {
+    type: String,
+    enum: ["stripe", "khalti", "esewa", "fonepay", "cash"],
     required: true
   },
   paymentStatus: {

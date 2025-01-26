@@ -9,7 +9,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const placeOrder = async (req, res) => {
   const frontend_url = "http://localhost:5173"; 
   try {
-    // Check if user exists in request
     if (!req.user || !req.user._id) {
       return res.status(401).json({
         success: false,
@@ -55,82 +54,65 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    // Validate address fields
-    const requiredAddressFields = ['street', 'city', 'state', 'country', 'zipCode'];
-    const missingAddressFields = requiredAddressFields.filter(field => !address[field]);
-    
-    if (missingAddressFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Missing address fields: ${missingAddressFields.join(', ')}`
-      });
-    }
-
-    try {
-      // Create Stripe session first to ensure it works
-      const line_items = items.map((item) => ({
-        price_data: {
-          currency: "USD",
-          product_data: { 
-            name: `${item.name} (Qty: ${item.quantity})`
-          },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: 1,
-      }));
-
-      line_items.push({
-        price_data: {
-          currency: "USD",
-          product_data: { 
-            name: "Delivery Charges"
-          },
-          unit_amount: 200,
-        },
-        quantity: 1,
-      });
-
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items,
-        mode: "payment",
-        success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${frontend_url}/cancel`,
-        submit_type: 'pay',
-        payment_intent_data: {
+    // Create line items for Stripe
+    const line_items = items.map((item) => ({
+      price_data: {
+        currency: "USD",
+        product_data: { 
+          name: item.name,
           metadata: {
-            userId: userId.toString()
+            productId: item._id
           }
-        }
-      });
+        },
+        unit_amount: Math.round(item.price * 100),
+      },
+      quantity: item.quantity,
+    }));
 
-      // If Stripe session is created successfully, save the order
-      const newOrder = new orderModel({
-        userId,
-        items,
-        amount,
-        address,
-        status: "pending",
-        paymentStatus: "pending"
-      });
+    // Add delivery charge
+    line_items.push({
+      price_data: {
+        currency: "USD",
+        product_data: { 
+          name: "Delivery Charges"
+        },
+        unit_amount: 200,
+      },
+      quantity: 1,
+    });
 
-      await newOrder.save();
+    // Create metadata
+    const metadata = {
+      userId: userId.toString(),
+      items: JSON.stringify(items.map(item => ({
+        productId: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }))),
+      address: JSON.stringify(address),
+      totalAmount: amount + 2 // Add delivery charge
+    };
 
-      res.json({
-        success: true,
-        url: session.url,
-        orderId: newOrder._id
-      });
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items,
+      mode: "payment",
+      success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontend_url}/verify?success=false`,
+      metadata: metadata,
+      payment_intent_data: {
+        metadata: metadata
+      }
+    });
 
-    } catch (stripeError) {
-      console.error("Stripe session creation error:", stripeError);
-      res.status(500).json({
-        success: false,
-        message: "Failed to create payment session"
-      });
-    }
+    res.json({
+      success: true,
+      url: session.url
+    });
   } catch (error) {
-    console.error("Order placement error:", error);
+    console.error("Place order error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to place order"
@@ -140,66 +122,108 @@ const placeOrder = async (req, res) => {
 
 const verifyOrder = async (req, res) => {
   try {
-    const { success, sessionId } = req.body;
-
-    if (!sessionId) {
+    const { session_id } = req.query;
+    
+    if (!session_id) {
+      console.error("No session_id provided in query");
       return res.status(400).json({
         success: false,
         message: "Session ID is required"
       });
     }
 
-    // Retrieve the session from Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    console.log("Retrieving session:", session_id);
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    console.log("Session retrieved:", session.payment_status);
     
     if (!session) {
+      console.error("No session found for ID:", session_id);
       return res.status(404).json({
         success: false,
         message: "Session not found"
       });
     }
 
-    // Get the userId from the payment intent metadata
-    const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
-    const userId = paymentIntent.metadata.userId;
+    if (session.payment_status === "paid") {
+      try {
+        // Get metadata from session first, fallback to payment intent
+        let metadata = session.metadata;
+        
+        if (!metadata || !metadata.items || !metadata.address || !metadata.userId || !metadata.totalAmount) {
+          console.log("Metadata not found in session, checking payment intent...");
+          const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
+          metadata = paymentIntent.metadata;
+        }
 
-    if (!userId) {
+        if (!metadata || !metadata.items || !metadata.address || !metadata.userId || !metadata.totalAmount) {
+          console.error("Missing metadata in both session and payment intent");
+          return res.status(400).json({
+            success: false,
+            message: "Missing order information in payment"
+          });
+        }
+
+        console.log("Processing order with metadata:", metadata);
+        const items = JSON.parse(metadata.items);
+        const address = JSON.parse(metadata.address);
+        const userId = metadata.userId;
+        const totalAmount = parseFloat(metadata.totalAmount);
+
+        // Create order
+        const order = new orderModel({
+          userId,
+          items: items.map(item => ({
+            productId: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+          })),
+          totalAmount,
+          address,
+          paymentMethod: "stripe",
+          status: "preparing",
+          paymentStatus: "completed"
+        });
+
+        console.log("Saving order for user:", userId);
+        await order.save();
+
+        // Update user's order history
+        console.log("Updating user order history");
+        await userModel.findByIdAndUpdate(
+          userId,
+          { $push: { orders: order._id } }
+        );
+
+        return res.json({
+          success: true,
+          message: "Payment verified and order created",
+          orderId: order._id
+        });
+      } catch (error) {
+        console.error("Error processing payment intent:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Error processing payment details"
+        });
+      }
+    } else {
+      console.log("Payment not completed. Status:", session.payment_status);
       return res.status(400).json({
         success: false,
-        message: "User ID not found in payment metadata"
+        message: "Payment not completed"
       });
     }
-
-    // Find and update the pending order for this user
-    const order = await orderModel.findOneAndUpdate(
-      { userId, status: "pending" },
-      { status: success ? "confirmed" : "failed" },
-      { new: true }
-    );
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
-    }
-
-    return res.json({
-      success: true,
-      message: success ? "Payment verified successfully" : "Payment failed",
-      order
-    });
   } catch (error) {
     console.error("Verify order error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to verify payment"
+      message: error.message || "Failed to verify order"
     });
   }
 };
 
-// user orders for frontend
-const userOrders = async (req, res) => {
+const placeInstantOrder = async (req, res) => {
   try {
     if (!req.user || !req.user._id) {
       return res.status(401).json({
@@ -208,125 +232,136 @@ const userOrders = async (req, res) => {
       });
     }
 
-    const orders = await orderModel.find({ 
-      userId: req.user._id 
-    }).sort({ createdAt: -1 }); // Sort by newest first
+    const { items, amount, address, paymentMethod } = req.body;
+    const userId = req.user._id;
 
-    if (!orders) {
-      return res.json({
-        success: true,
-        data: []
-      });
-    }
+    // Create order directly
+    const order = new orderModel({
+      userId,
+      items: items.map(item => ({
+        productId: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      })),
+      totalAmount: amount + 2, // Add delivery charge
+      address,
+      paymentMethod,
+      status: "preparing",
+      paymentStatus: "completed" // Mark as paid for instant payment methods
+    });
 
-    res.json({ 
-      success: true, 
-      data: orders 
+    await order.save();
+
+    // Update user's order history
+    await userModel.findByIdAndUpdate(
+      userId,
+      { $push: { orders: order._id } }
+    );
+
+    res.json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: order._id
     });
   } catch (error) {
-    console.error("Error fetching user orders:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to fetch orders" 
+    console.error("Place instant order error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to place order"
     });
   }
 };
 
-//listing orders for admin panel
+const userOrders = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const orders = await orderModel
+      .find({ userId })
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    res.json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    console.error("User orders error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch orders"
+    });
+  }
+};
 
 const listOrders = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const orders = await orderModel
+      .find()
+      .sort({ createdAt: -1 })
+      .populate('userId', 'name email');
 
-    const totalItems = await orderModel.countDocuments({});
-    const totalPages = Math.ceil(totalItems / limit);
-
-    const orders = await orderModel.find({})
-      .populate('userId', 'name email phone')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    res.json({ 
-      success: true, 
-      data: orders,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit
-      }
+    res.json({
+      success: true,
+      data: orders
     });
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to fetch orders" 
+    console.error("List orders error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to list orders"
     });
   }
 };
 
-//api for updating order status
 const updateStatus = async (req, res) => {
   try {
-    const { orderId, status, paymentStatus } = req.body;
+    const { orderId, status } = req.body;
     
-    const updateData = {};
-    if (status) updateData.status = status;
-    if (paymentStatus) updateData.paymentStatus = paymentStatus;
-
-    const order = await orderModel.findByIdAndUpdate(
-      orderId,
-      { $set: updateData },
-      { new: true }
-    );
-
+    const order = await orderModel.findById(orderId);
     if (!order) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         message: "Order not found"
       });
     }
 
+    order.status = status;
+    await order.save();
+
     res.json({
       success: true,
-      message: "Order updated successfully"
+      message: "Order status updated"
     });
   } catch (error) {
-    console.error("Error updating order:", error);
+    console.error("Update status error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update order"
+      message: "Failed to update status"
     });
   }
 };
 
 const updatePaymentStatus = async (req, res) => {
   try {
-    const { orderId, paymentStatus } = req.body;
+    const { orderId, status } = req.body;
     
-    const order = await orderModel.findByIdAndUpdate(
-      orderId,
-      { paymentStatus },
-      { new: true }
-    );
-
+    const order = await orderModel.findById(orderId);
     if (!order) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         message: "Order not found"
       });
     }
 
+    order.paymentStatus = status;
+    await order.save();
+
     res.json({
       success: true,
-      data: order,
-      message: "Payment status updated successfully"
+      message: "Payment status updated"
     });
   } catch (error) {
-    console.error("Error updating payment status:", error);
+    console.error("Update payment status error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update payment status"
@@ -334,4 +369,4 @@ const updatePaymentStatus = async (req, res) => {
   }
 };
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, updatePaymentStatus };
+export { placeOrder, placeInstantOrder, verifyOrder, userOrders, listOrders, updateStatus, updatePaymentStatus };

@@ -10,42 +10,49 @@ const Verify = () => {
   const [searchParams] = useSearchParams();
   const success = searchParams.get("success");
   const sessionId = searchParams.get("session_id");
-  const { url } = useContext(StoreContext);
+  const { url, clearCart } = useContext(StoreContext);
 
   useEffect(() => {
     const verifyPayment = async () => {
       try {
         if (!sessionId) {
           toast.error("Invalid session");
-          navigate("/");
+          navigate("/home");
           return;
         }
 
-        const response = await axios.post(url + "/api/order/verify", {
-          success: success === "true",
-          sessionId
-        });
+        console.log("Verifying payment with session:", sessionId);
+        const response = await axios.get(`${url}/api/order/verify?session_id=${sessionId}`);
+        console.log("Verification response:", response.data);
 
         if (response.data.success) {
           toast.success("Order placed successfully!");
-          navigate("/myorders");
+          clearCart(); // Clear the cart after successful order
+          navigate("/my-orders");
         } else {
+          console.error("Verification failed:", response.data);
           toast.error(response.data.message || "Payment verification failed");
-          navigate("/");
+          navigate("/home");
         }
       } catch (error) {
-        console.error("Payment verification failed:", error);
+        console.error("Payment verification error:", error.response?.data || error);
         toast.error(error.response?.data?.message || "Payment verification failed");
-        navigate("/");
+        navigate("/home");
       }
     };
 
-    verifyPayment();
-  }, [success, sessionId, url, navigate]);
+    if (success === "true") {
+      verifyPayment();
+    } else {
+      toast.error("Payment was cancelled");
+      navigate("/home");
+    }
+  }, [success, sessionId, url, navigate, clearCart]);
 
   return (
     <div className="verify">
       <div className="spinner"></div>
+      <p>Verifying your payment...</p>
     </div>
   );
 };

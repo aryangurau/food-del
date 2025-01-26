@@ -4,6 +4,7 @@ import orderModel from "../models/orderModel.js";
 import {
   listOrders,
   placeOrder,
+  placeInstantOrder,
   updateStatus,
   userOrders,
   verifyOrder,
@@ -12,7 +13,8 @@ import {
 const orderRouter = express.Router();
 
 orderRouter.post("/place", authMiddleware, placeOrder);
-orderRouter.post("/verify", verifyOrder);
+orderRouter.post("/place-instant", authMiddleware, placeInstantOrder);
+orderRouter.get("/verify", verifyOrder); // Changed to GET since we're using query params
 orderRouter.post("/userorders", authMiddleware, userOrders);
 orderRouter.get("/list", listOrders);
 orderRouter.post("/status", updateStatus);

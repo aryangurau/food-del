@@ -234,7 +234,7 @@ const Navbar = ({ setShowLogin }) => {
               <img src={assets.profile_icon} alt="" />
               <ul className={`nav-profile-dropdown ${isProfileOpen ? "show" : ""}`}>
                 <li onClick={() => {
-                  navigate("/myorders");
+                  navigate("/my-orders");
                   setIsMobileMenuOpen(false);
                   setIsProfileOpen(false);
                 }}>

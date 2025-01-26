@@ -148,7 +148,7 @@ const MyOrders = () => {
               <div className="order-images">
                 {order.items.slice(0, 3).map((item, index) => (
                   <img 
-                    key={item._id} 
+                    key={`${order._id}-${item.productId}-${index}`}
                     src={item.image?.startsWith('http') ? item.image : `${url}/${item.image}`}
                     alt={item.name}
                     className={`order-food-image ${index > 0 ? 'stacked' : ''}`}
@@ -166,14 +166,22 @@ const MyOrders = () => {
               <div className="order-details">
                 <div className="order-items">
                   {order.items.map((item, index) => (
-                    <span key={item._id}>
+                    <span key={`${order._id}-${item.productId}-${index}`}>
                       {item.name} × <span>{item.quantity}</span>
                       {index < order.items.length - 1 ? ", " : ""}
                     </span>
                   ))}
                 </div>
-                <p className="order-amount">Total: <span>${order.amount.toFixed(2)}</span></p>
+                <p className="order-amount">
+                  Total: <span>${(order.totalAmount || 0).toFixed(2)}</span>
+                </p>
                 <p className="order-count">Items: <span>{order.items.length}</span></p>
+                <p className="order-payment">
+                  Payment: <span>{order.paymentMethod}</span>
+                  <span className={`payment-status ${order.paymentStatus}`}>
+                    ({order.paymentStatus})
+                  </span>
+                </p>
               </div>
             </div>
             <div className="order-status">
