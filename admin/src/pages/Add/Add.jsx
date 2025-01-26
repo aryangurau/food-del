@@ -2,7 +2,7 @@ import { useState } from "react";
 import { assets } from "../../assets/assets";
 import "./Add.css";
 import axios from "axios";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 
 const Add = ({ url }) => {
   const [image, setImage] = useState(false);
@@ -12,6 +12,7 @@ const Add = ({ url }) => {
     price: "",
     category: "Salad",
   });
+
   const onChangeHandler = (event) => {
     const name = event.target.name;
     const value = event.target.value;
@@ -20,24 +21,33 @@ const Add = ({ url }) => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("description", data.description);
-    formData.append("price", Number(data.price));
-    formData.append("category", data.category);
-    formData.append("image", image);
-    const response = await axios.post(`${url}/api/food/add`, formData);
-    if (response.data.success) {
-      setData({
-        name: "",
-        description: "",
-        price: "",
-        category: "Salad",
-      });
-      setImage(false);
-      toast.success(response.data.message);
-    } else {
-      toast.error(response.data.message);
+    const loadingToast = toast.loading('Adding food item...');
+    
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("price", Number(data.price));
+      formData.append("category", data.category);
+      formData.append("image", image);
+      
+      const response = await axios.post(`${url}/api/food/add`, formData);
+      
+      if (response.data.success) {
+        setData({
+          name: "",
+          description: "",
+          price: "",
+          category: "Salad",
+        });
+        setImage(false);
+        toast.success('Food item added successfully', { id: loadingToast });
+      } else {
+        toast.error(response.data.message || 'Failed to add food item', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Error adding food item:', error);
+      toast.error(error.response?.data?.message || 'Failed to add food item', { id: loadingToast });
     }
   };
 
@@ -68,6 +78,7 @@ const Add = ({ url }) => {
             type="text"
             name="name"
             placeholder="Type here"
+            required
           />
         </div>
         <div className="add-product-description flex-col">
@@ -84,7 +95,7 @@ const Add = ({ url }) => {
         <div className="add-category-price">
           <div className="add-category flex-col">
             <p>Product Category</p>
-            <select onChange={onChangeHandler} name="category">
+            <select onChange={onChangeHandler} name="category" value={data.category}>
               <option value="Salad">Salad</option>
               <option value="Rolls">Rolls</option>
               <option value="Deserts">Deserts</option>
@@ -100,15 +111,14 @@ const Add = ({ url }) => {
             <input
               onChange={onChangeHandler}
               value={data.price}
-              type="Number"
+              type="number"
               name="price"
-              placeholder="$20"
+              placeholder="Type here"
+              required
             />
           </div>
         </div>
-        <button type="submit" className="add-btn">
-          ADD
-        </button>
+        <button type="submit" className="add-btn">ADD</button>
       </form>
     </div>
   );
