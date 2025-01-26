@@ -29,6 +29,7 @@ const MyOrders = () => {
       );
 
       if (response.data.success) {
+        console.log('Orders data:', response.data.data);
         setOrders(response.data.data);
       } else {
         toast.error(response.data.message || "Failed to fetch orders");
@@ -144,18 +145,35 @@ const MyOrders = () => {
         {orders.map((order) => (
           <div key={order._id} className="my-orders-order">
             <div className="order-info">
-              <img src={assets.parcel_icon} alt={order.name} />
+              <div className="order-images">
+                {order.items.slice(0, 3).map((item, index) => (
+                  <img 
+                    key={item._id} 
+                    src={item.image?.startsWith('http') ? item.image : `${url}/${item.image}`}
+                    alt={item.name}
+                    className={`order-food-image ${index > 0 ? 'stacked' : ''}`}
+                    title={item.name}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = assets.parcel_icon;
+                    }}
+                  />
+                ))}
+                {order.items.length > 3 && (
+                  <div className="more-items">+{order.items.length - 3}</div>
+                )}
+              </div>
               <div className="order-details">
-                <p className="order-items">
+                <div className="order-items">
                   {order.items.map((item, index) => (
                     <span key={item._id}>
-                      {item.name} × {item.quantity}
+                      {item.name} × <span>{item.quantity}</span>
                       {index < order.items.length - 1 ? ", " : ""}
                     </span>
                   ))}
-                </p>
-                <p className="order-amount">Total: ${order.amount.toFixed(2)}</p>
-                <p className="order-count">Items: {order.items.length}</p>
+                </div>
+                <p className="order-amount">Total: <span>${order.amount.toFixed(2)}</span></p>
+                <p className="order-count">Items: <span>{order.items.length}</span></p>
               </div>
             </div>
             <div className="order-status">

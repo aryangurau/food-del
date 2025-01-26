@@ -18,7 +18,7 @@ const Navbar = () => {
         <button onClick={handleLogout} className="logout-button">
           Logout
         </button>
-        <img className="profile" src={assets.profile_image} alt="" />
+        <img className="profile" src={assets.admin} alt="" />
       </div>
     </div>
   );

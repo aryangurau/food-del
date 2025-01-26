@@ -119,30 +119,95 @@
   flex: 1;
 }
 
-.order-info img {
+.order-images {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 100px;
+  height: 60px;
+}
+
+.order-images img:nth-child(n+4) {
+  display: none;
+}
+
+.order-food-image {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 8px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+  background-color: #f3f4f6;
+}
+
+.order-food-image.stacked {
+  position: absolute;
+  left: 0;
+  transform: translateX(calc(25px * var(--stacked-index, 1)));
+}
+
+.order-food-image:nth-child(2) {
+  --stacked-index: 1;
+  z-index: 1;
+}
+
+.order-food-image:nth-child(3) {
+  --stacked-index: 2;
+  z-index: 2;
+}
+
+.more-items {
+  position: absolute;
+  left: 75px;
+  z-index: 3;
+  background-color: #3b82f6;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .order-details {
   flex: 1;
 }
 
-.order-details h3 {
+.order-items {
   color: #1f2937;
-  margin: 0 0 5px;
-  font-size: 18px;
+  font-size: 15px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  font-weight: 500;
 }
 
-.order-details p {
+.order-items span {
+  color: #3b82f6;
+}
+
+.order-amount {
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+.order-amount span {
+  color: #3b82f6;
+}
+
+.order-count {
   color: #6b7280;
-  margin: 3px 0;
   font-size: 14px;
 }
 
-.order-details span {
+.order-count span {
   color: #3b82f6;
   font-weight: 500;
 }
