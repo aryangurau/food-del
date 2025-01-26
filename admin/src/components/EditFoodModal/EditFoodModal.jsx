@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import './EditFoodModal.css';
 
 const EditFoodModal = ({ food, onClose, onUpdate, url }) => {
@@ -43,6 +43,7 @@ const EditFoodModal = ({ food, onClose, onUpdate, url }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    const toastId = toast.loading('Updating food item...');
     try {
       setIsSubmitting(true);
       const formDataToSend = new FormData();
@@ -61,15 +62,15 @@ const EditFoodModal = ({ food, onClose, onUpdate, url }) => {
       });
 
       if (response.data.success) {
-        toast.success('Food item updated successfully');
+        toast.success('Food item updated successfully', { id: toastId });
         onUpdate(response.data.data);
         onClose();
       } else {
-        toast.error(response.data.message || 'Failed to update food item');
+        toast.error(response.data.message || 'Failed to update food item', { id: toastId });
       }
     } catch (error) {
       console.error('Error updating food item:', error);
-      toast.error(error.response?.data?.message || 'Failed to update food item');
+      toast.error(error.response?.data?.message || 'Failed to update food item', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
