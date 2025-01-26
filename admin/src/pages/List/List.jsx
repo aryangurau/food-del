@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaTrash, FaEdit } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { toast } from "react-toastify";
 import EditFoodModal from '../../components/EditFoodModal/EditFoodModal';
 import "./List.css";
 
@@ -30,23 +30,22 @@ const List = ({ url }) => {
       }
     } catch (error) {
       console.error('Error fetching food items:', error);
-      toast.error("Could not fetch food items");
+      toast.error("Error fetching food items");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    const toastId = toast.loading('Deleting food item...');
     try {
       const response = await axios.post(`${url}/api/food/remove`, { id: id });
       if (response.data.success) {
         setFoodItems(foodItems.filter(item => item._id !== id));
-        toast.success("Food item deleted successfully", { id: toastId });
+        toast.success("Food item deleted successfully");
       }
     } catch (error) {
       console.error('Error deleting food item:', error);
-      toast.error("Could not delete food item", { id: toastId });
+      toast.error("Error deleting food item");
     }
   };
 
