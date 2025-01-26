@@ -3,6 +3,7 @@ dotenv.config();
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
+import { sendEmail } from "../utils/mailer.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -313,11 +314,70 @@ const listOrders = async (req, res) => {
   }
 };
 
+const getOrderStatusEmailContent = (order, status) => {
+  const itemsList = order.items.map(item => 
+    `<li>${item.name} × ${item.quantity} - ₹${item.price}</li>`
+  ).join('');
+
+  let statusMessage = '';
+  switch(status.toLowerCase()) {
+    case 'preparing':
+      statusMessage = 'Your order is being prepared with care in our kitchen.';
+      break;
+    case 'on the way':
+      statusMessage = 'Your delicious food is on its way to you!';
+      break;
+    case 'delivered':
+      statusMessage = 'Your order has been delivered. Enjoy your meal!';
+      break;
+    case 'cancelled':
+      statusMessage = 'Your order has been cancelled.';
+      break;
+    default:
+      statusMessage = `Your order status has been updated to: ${status}`;
+  }
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #e65100;">Order Status Update</h2>
+      <p style="font-size: 16px; color: #333;">${statusMessage}</p>
+      
+      <div style="margin: 20px 0; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+        <h3 style="color: #333;">Order Details</h3>
+        <p><strong>Order ID:</strong> #${order._id.toString().slice(-5)}</p>
+        <p><strong>Items:</strong></p>
+        <ul style="list-style-type: none; padding-left: 0;">
+          ${itemsList}
+        </ul>
+        <p><strong>Total Amount:</strong> ₹${order.totalAmount}</p>
+        <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+      </div>
+
+      <div style="margin: 20px 0; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+        <h3 style="color: #333;">Delivery Address</h3>
+        <p>${order.address.name}</p>
+        <p>${order.address.street}</p>
+        <p>${order.address.city}, ${order.address.state}</p>
+        <p>${order.address.country} - ${order.address.zipCode}</p>
+        <p>Phone: ${order.address.phone}</p>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center; color: #666;">
+        <p>Thank you for placing your order with Pathao Khaja!</p>
+        <p style="font-size: 12px;">If you have any questions, please contact our support team.</p>
+      </div>
+    </div>
+  `;
+};
+
 const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
     
-    const order = await orderModel.findById(orderId);
+    const order = await orderModel.findById(orderId)
+      .populate('userId', 'email')
+      .populate('items.productId');
+
     if (!order) {
       return res.json({
         success: false,
@@ -327,6 +387,20 @@ const updateStatus = async (req, res) => {
 
     order.status = status;
     await order.save();
+
+    // Send email notification
+    if (order.userId && order.userId.email) {
+      try {
+        await sendEmail({
+          to: order.userId.email,
+          subject: `Order Status Update - ${status}`,
+          htmlMessage: getOrderStatusEmailContent(order, status)
+        });
+      } catch (emailError) {
+        console.error("Failed to send status update email:", emailError);
+        // Don't return error response as the status update was successful
+      }
+    }
 
     res.json({
       success: true,
