@@ -31,19 +31,19 @@ const Footer = () => {
           <h2>Developers</h2>
           <div className="developer-list">
             <div className="developer-item">
-              <img src={assets.profile_icon} alt="Aryan Gurau" className="developer-image" />
+              <img src={assets.aryan} alt="Aryan Gurau" className="developer-image" />
               <span>Aryan Gurau</span>
             </div>
             <div className="developer-item">
-              <img src={assets.profile_icon} alt="Kiran Devkota" className="developer-image" />
+              <img src={assets.kiran} alt="Kiran Devkota" className="developer-image" />
               <span>Kiran Devkota</span>
             </div>
             <div className="developer-item">
-              <img src={assets.profile_icon} alt="Avishek Dawadi" className="developer-image" />
+              <img src={assets.avishek} alt="Avishek Dawadi" className="developer-image" />
               <span>Avishek Dawadi</span>
             </div>
             <div className="developer-item">
-              <img src={assets.profile_icon} alt="Shikha Shrestha" className="developer-image" />
+              <img src={assets.shikha} alt="Shikha Shrestha" className="developer-image" />
               <span>Shikha Shrestha</span>
             </div>
           </div>

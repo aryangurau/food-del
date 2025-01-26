@@ -65,9 +65,19 @@ import profile_icon from "./profile_icon.png";
 import bag_icon from "./bag_icon.png";
 import logout_icon from "./logout_icon.png";
 import parcel_icon from "./parcel_icon.png";
-
-
+import bot from "./developers/bot.png";
+import aryan from "./developers/aryan.png";
+import kiran from "./developers/kiran.png";
+import avishek from "./developers/avishek.png";
+import shikha from "./developers/shikha.png";
+import chicken from "./chicken.png";
 export const assets = {
+  aryan,
+  kiran,
+  avishek,
+  shikha,
+  bot,
+  chicken,
   basket_icon,
   logo,
   icon,
