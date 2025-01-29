@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import FoodDecoration from '../FoodDecoration/FoodDecoration';
+import Profile from '../Profile/Profile';
 
 const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
@@ -13,6 +14,7 @@ const Navbar = ({ setShowLogin }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const profileRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
@@ -234,6 +236,13 @@ const Navbar = ({ setShowLogin }) => {
               <img src={assets.profile_icon} alt="" />
               <ul className={`nav-profile-dropdown ${isProfileOpen ? "show" : ""}`}>
                 <li onClick={() => {
+                  setShowProfileModal(true);
+                  setIsProfileOpen(false);
+                }}>
+                  <img src={assets.user_icon} alt="" />
+                  <p>My Profile</p>
+                </li>
+                <li onClick={() => {
                   navigate("/my-orders");
                   setIsMobileMenuOpen(false);
                   setIsProfileOpen(false);
@@ -251,6 +260,9 @@ const Navbar = ({ setShowLogin }) => {
           )}
         </div>
       </div>
+      {showProfileModal && (
+        <Profile onClose={() => setShowProfileModal(false)} />
+      )}
     </div>
   );
 };
