@@ -75,6 +75,11 @@ const orderSchema = new mongoose.Schema({
     required: true,
     min: [0, 'Amount cannot be negative']
   },
+  sessionId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
   status: {
     type: String,
     enum: ["pending", "preparing", "prepared", "ontheway", "delivered", "cancelled"],

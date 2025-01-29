@@ -72,7 +72,13 @@ const MyOrders = () => {
       
       if (response.data.success) {
         toast.success(`Order Status: ${response.data.status}`);
-        fetchOrders(); // Refresh orders to show updated status
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === orderId 
+              ? { ...order, status: response.data.status, updatedAt: response.data.updatedAt }
+              : order
+          )
+        );
       } else {
         toast.error(response.data.message || "Failed to track order");
       }

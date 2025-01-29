@@ -133,6 +133,17 @@ const verifyOrder = async (req, res) => {
       });
     }
 
+    // Check if an order with this session ID already exists
+    const existingOrder = await orderModel.findOne({ sessionId: session_id });
+    if (existingOrder) {
+      console.log("Order already exists for session:", session_id);
+      return res.json({
+        success: true,
+        message: "Order already processed",
+        orderId: existingOrder._id
+      });
+    }
+
     console.log("Retrieving session:", session_id);
     const session = await stripe.checkout.sessions.retrieve(session_id);
     console.log("Session retrieved:", session.payment_status);
@@ -170,7 +181,7 @@ const verifyOrder = async (req, res) => {
         const userId = metadata.userId;
         const totalAmount = parseFloat(metadata.totalAmount);
 
-        // Create order
+        // Create order with session ID
         const order = new orderModel({
           userId,
           items: items.map(item => ({
@@ -183,7 +194,8 @@ const verifyOrder = async (req, res) => {
           address,
           paymentMethod: "stripe",
           status: "preparing",
-          paymentStatus: "completed"
+          paymentStatus: "completed",
+          sessionId: session_id  // Save the session ID with the order
         });
 
         console.log("Saving order for user:", userId);
