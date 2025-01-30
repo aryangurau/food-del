@@ -27,7 +27,7 @@ const Verify = () => {
 
         if (response.data.success) {
           toast.success("Order placed successfully!");
-          clearCart(); // Clear the cart after successful order
+          await clearCart(); // Wait for cart to be cleared
           navigate("/my-orders");
         } else {
           console.error("Verification failed:", response.data);

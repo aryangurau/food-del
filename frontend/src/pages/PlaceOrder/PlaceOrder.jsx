@@ -110,6 +110,26 @@ const PlaceOrder = () => {
         } else {
           toast.error(response.data.message || "Failed to place order");
         }
+      } else if (selectedPayment === PAYMENT_METHODS.CASH) {
+        const response = await axios.post(
+          `${url}/api/order/create`,
+          orderData,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response.data.success) {
+          toast.success("Order placed successfully!");
+          await clearCart();
+          navigate("/my-orders");
+        } else {
+          setLoading(false);
+          toast.error(response.data.message || "Failed to place order");
+        }
       } else {
         // Simulate instant success for other payment methods
         const response = await axios.post(`${url}/api/order/place-instant`, orderData, {

@@ -160,8 +160,28 @@ const StoreContextProvider = (props) => {
     }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     setCartItems({});
+    localStorage.removeItem('cartItems');
+
+    // Clear cart in backend if user is logged in
+    if (token) {
+      try {
+        await axios.post(
+          `${url}/api/cart/clear`,
+          {},
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Failed to clear cart in backend:', error);
+      }
+    }
+
     toast(getRandomMessage('empty'), {
       icon: '🧹',
       style: {
@@ -171,6 +191,52 @@ const StoreContextProvider = (props) => {
       },
     });
   };
+
+  const loadCartData = async () => {
+    if (!token) {
+      setCartItems({});
+      localStorage.removeItem('cartItems');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${url}/api/cart/get`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setCartItems(response.data.cartData || {});
+        localStorage.setItem('cartItems', JSON.stringify(response.data.cartData || {}));
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      toast.error("Failed to load cart data");
+      setCartItems({});
+      localStorage.removeItem('cartItems');
+    }
+  };
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        await fetchFoodList();
+        await loadCartData();
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      }
+    };
+    loadInitialData();
+  }, [token]); // Re-run when token changes
+
+  // Clear cart when user logs out
+  useEffect(() => {
+    if (!token) {
+      setCartItems({});
+      localStorage.removeItem('cartItems');
+    }
+  }, [token]);
 
   const getTotalCartAmount = () => {
     let totalAmount = 0;
@@ -203,66 +269,6 @@ const StoreContextProvider = (props) => {
       console.error("Error fetching food list:", error);
     }
   };
-
-  const loadCartData = async () => {
-    if (!token) {
-      // If no token, try to load from localStorage
-      const savedCart = localStorage.getItem('cartItems');
-      if (savedCart) {
-        try {
-          const parsedCart = JSON.parse(savedCart);
-          setCartItems(parsedCart);
-        } catch (error) {
-          console.error("Error parsing saved cart:", error);
-          setCartItems({});
-        }
-      }
-      return;
-    }
-
-    try {
-      const response = await axios.get(`${url}/api/cart/get`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.success) {
-        setCartItems(response.data.cartData);
-        localStorage.setItem('cartItems', JSON.stringify(response.data.cartData));
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (error) {
-      console.error("Error loading cart:", error);
-      toast.error("Failed to load cart data");
-      
-      // Fallback to localStorage if API fails
-      const savedCart = localStorage.getItem('cartItems');
-      if (savedCart) {
-        try {
-          setCartItems(JSON.parse(savedCart));
-        } catch (e) {
-          setCartItems({});
-        }
-      }
-    }
-  };
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        await fetchFoodList();
-        await loadCartData();
-      } catch (error) {
-        console.error("Error loading initial data:", error);
-      }
-    };
-    loadInitialData();
-  }, [token]); // Re-run when token changes
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
-  }, [cartItems]);
 
   const contextValue = {
     food_list,

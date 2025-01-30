@@ -53,7 +53,7 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-//fetch user cart data
+// fetch user cart data
 const getCart = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -66,12 +66,27 @@ const getCart = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const cartData = userData.cartData || {};
-    res.json({ success: true, cartData });
+    res.json({ success: true, cartData: userData.cartData || {} });
   } catch (error) {
     console.error("Get cart error:", error);
     res.status(500).json({ success: false, message: "Error fetching cart" });
   }
 };
 
-export { addToCart, removeFromCart, getCart };
+// clear user cart
+const clearCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    await userModel.findByIdAndUpdate(userId, { cartData: {} });
+    res.json({ success: true, message: "Cart cleared", cartData: {} });
+  } catch (error) {
+    console.error("Clear cart error:", error);
+    res.status(500).json({ success: false, message: "Error clearing cart" });
+  }
+};
+
+export { addToCart, removeFromCart, getCart, clearCart };
