@@ -1,28 +1,3 @@
-.navbar-notification {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.navbar-notification a {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: #49557e;
-}
-
-.notification-icon {
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.notification-icon:hover {
-  transform: scale(1.1);
-  color: tomato;
-}
-
 .navbar-container {
     position: sticky;
     top: 0;
@@ -60,6 +35,11 @@
   margin-left: 40px;
 }
 
+.navbar-menu a {
+  color: #49557e;
+  text-decoration: none;
+}
+
 .navbar-right {
   position: relative;
   display: flex;
@@ -91,10 +71,43 @@
 
 .navbar li {
   cursor: pointer;
+  color: #49557e;
 }
 
 .navbar-search-icon {
   position: relative;
+  color: #49557e;
+}
+
+.navbar-cart {
+  position: relative;
+  color: #49557e;
+}
+
+.navbar-notification {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-notification a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #49557e;
+}
+
+.notification-icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #49557e;
+}
+
+.notification-icon:hover {
+  transform: scale(1.1);
+  color: tomato;
 }
 
 .navbar-cart {

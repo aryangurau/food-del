@@ -8,7 +8,7 @@ import Menu from "./pages/Menu/Menu";
 import Offers from "./components/Offers/Offers";
 import Wishlist from "./components/Wishlist/Wishlist";
 import Notifications from "./components/Notifications/Notifications";
-import LoyaltyPoints from "./components/LoyaltyPoints/LoyaltyPoints";
+import Loyalty from "./pages/Loyalty/Loyalty";
 import Cart from "./pages/Cart/Cart";
 import PlaceOrder from "./pages/PlaceOrder/PlaceOrder";
 import LoginPopup from "./components/LoginPopup/LoginPopup";
@@ -93,7 +93,7 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/offers" element={<Offers />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/loyalty" element={<LoyaltyPoints />} />
+          <Route path="/loyalty" element={<Loyalty />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/order" element={<PlaceOrder />} />

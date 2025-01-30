@@ -61,6 +61,9 @@ const Loyalty = () => {
     }
   }, [token]);
 
+  const MAX_POINTS = 300;
+  const progressPercentage = (points / MAX_POINTS) * 100;
+
   if (loading) {
     return <div className="loyalty-loading">Loading loyalty data...</div>;
   }
@@ -72,8 +75,25 @@ const Loyalty = () => {
         <h2>My Loyalty Points</h2>
       </div>
 
-      <div className="points-display">
-        <h3>{points} Points Available</h3>
+      <div className="points-progress-section">
+        <div className="progress-bar-container">
+          <div 
+            className="progress-bar" 
+            style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+          >
+            <span className="progress-text">{points}/{MAX_POINTS}</span>
+          </div>
+        </div>
+        <div className="points-milestones">
+          <span>0</span>
+          <span>100</span>
+          <span>200</span>
+          <span>300</span>
+        </div>
+        <div className="current-points">
+          <h3>{points}</h3>
+          <p>Points Available</p>
+        </div>
       </div>
 
       <div className="rewards-section">

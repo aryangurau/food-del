@@ -2,9 +2,35 @@
   max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #1a1a1a;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: #ffffff;
+}
+
+.loyalty-container * {
+  color: #ffffff;
+}
+
+.loyalty-container .transaction-points span.earn {
+  color: #4caf50;
+}
+
+.loyalty-container .transaction-points span.redeem {
+  color: #f44336;
+}
+
+.loyalty-container .progress-text {
+  color: #000;
+}
+
+.loyalty-container .points-milestones {
+  color: #ccc;
+}
+
+.loyalty-icon {
+  font-size: 2.5rem;
+  color: #f1c40f !important;
 }
 
 .loyalty-header {
@@ -12,92 +38,93 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  color: #2c3e50;
+  border-bottom: 1px solid #333;
+  padding-bottom: 1rem;
 }
 
-.loyalty-icon {
-  font-size: 2rem;
-  color: #f1c40f;
-}
-
-.points-display {
-  background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
-  padding: 2rem;
-  border-radius: 12px;
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.points-display h3 {
+.loyalty-header h2 {
   font-size: 2rem;
   margin: 0;
 }
 
-.rewards-section, .transactions-section {
-  background: #f8f9fa;
+.points-progress-section {
+  background: #262626;
   padding: 2rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-}
-
-.rewards-section h3, .transactions-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-}
-
-.rewards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.reward-card {
-  background: white;
-  padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.reward-card:hover {
-  transform: translateY(-2px);
+.current-points {
+  margin-top: 2rem;
 }
 
-.reward-card h4 {
-  color: #2c3e50;
-  margin: 0 0 1rem 0;
-}
-
-.points-cost {
-  color: #f39c12;
+.current-points h3 {
+  font-size: 3rem;
+  margin: 0;
   font-weight: bold;
+}
+
+.current-points p {
+  font-size: 1.2rem;
   margin: 1rem 0;
 }
 
-.reward-card button {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 6px;
-  background: #f39c12;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+.progress-bar-container {
+  background: #333;
+  height: 24px;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  position: relative;
 }
 
-.reward-card button:hover:not(:disabled) {
-  background: #f1c40f;
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f1c40f 0%, #f39c12 100%);
+  transition: width 0.5s ease;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.reward-card button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+.progress-text {
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: none;
+  z-index: 1;
+}
+
+.points-milestones {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.transactions-section {
+  background: #262626;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.section-header h3 {
+  font-size: 1.8rem;
+  margin: 0;
 }
 
 .transactions-list {
@@ -110,34 +137,243 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: white;
+  padding: 1.5rem;
+  background: #1a1a1a;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #333;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.transaction-item .points {
+.transaction-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.transaction-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.earn .transaction-icon {
+  background: #1b4a1b;
+  color: #4caf50;
+}
+
+.redeem .transaction-icon {
+  background: #4a1b1b;
+  color: #f44336;
+}
+
+.transaction-details {
+  flex: 1;
+}
+
+.transaction-details .description {
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.transaction-details .date {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.transaction-points {
+  text-align: right;
+}
+
+.transaction-points span {
+  font-size: 1.5rem;
   font-weight: bold;
+  display: block;
 }
 
-.transaction-item .earn {
-  color: #27ae60;
+.transaction-points span.earn {
+  color: #4caf50;
 }
 
-.transaction-item .redeem {
-  color: #e74c3c;
+.transaction-points span.redeem {
+  color: #f44336;
 }
 
-.transaction-item .date {
-  color: #7f8c8d;
+.transaction-points .order-id {
   font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.no-transactions {
+  text-align: center;
+  padding: 3rem;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 2px dashed #333;
+}
+
+.no-transactions p {
+  font-size: 1.2rem;
+  margin: 0;
 }
 
 .loyalty-loading {
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 200px;
-  font-size: 1.2rem;
-  color: #7f8c8d;
+  justify-content: center;
+  height: 300px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #333;
+  border-top: 4px solid #f1c40f;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .loyalty-container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .transaction-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .transaction-points {
+    text-align: left;
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+  }
+
+  .current-points h3 {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .loyalty-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .points-progress-section {
+    padding: 1.5rem;
+  }
+
+  .current-points h3 {
+    font-size: 2rem;
+  }
+
+  .transaction-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .transaction-points {
+    text-align: left;
+    width: 100%;
+    border-top: 1px solid #333;
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .transaction-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .transaction-details .description {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .loyalty-container {
+    background: #1e293b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .loyalty-header {
+    border-bottom-color: #334155;
+  }
+
+  .loyalty-header h2 {
+    color: #f8fafc;
+  }
+
+  .points-progress-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+
+  .current-points p {
+    color: #94a3b8;
+  }
+
+  .progress-bar-container {
+    background: #334155;
+  }
+
+  .points-milestones {
+    color: #94a3b8;
+  }
+
+  .section-header {
+    border-bottom-color: #334155;
+  }
+
+  .section-header h3 {
+    color: #f8fafc;
+  }
+
+  .transaction-item {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  .transaction-item:hover {
+    border-color: #475569;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .transaction-icon {
+    background: #1e293b;
+  }
+
+  .transaction-details .description {
+    color: #f8fafc;
+  }
+
+  .transaction-details .date,
+  .transaction-points .order-id {
+    color: #94a3b8;
+  }
+
+  .no-transactions {
+    background: #0f172a;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+
+  .spinner {
+    border-color: #334155;
+    border-top-color: #f1c40f;
+  }
 }
