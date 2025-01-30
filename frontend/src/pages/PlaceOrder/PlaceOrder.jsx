@@ -4,7 +4,7 @@ import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
-import { FaMoneyBillWave, FaMobile, FaCreditCard } from 'react-icons/fa';
+import { FaMoneyBillWave, FaMobile, FaCreditCard, FaStar, FaInfoCircle } from 'react-icons/fa';
 
 const PAYMENT_METHODS = {
   STRIPE: 'stripe',
@@ -184,6 +184,22 @@ const PlaceOrder = () => {
     total -= discount;
   }
 
+  const calculateSubtotal = () => {
+    return subtotal;
+  };
+
+  const calculateTotal = () => {
+    return total;
+  };
+
+  const handleApplyLoyaltyPoints = () => {
+    handleApplyPoints();
+  };
+
+  const handleRemoveLoyaltyPoints = () => {
+    handleRemovePoints();
+  };
+
   return (
     <form onSubmit={handlePlaceOrder} className="place-order">
       <div className="place-order-left">
@@ -269,130 +285,154 @@ const PlaceOrder = () => {
       </div>
 
       <div className="place-order-right">
-        <div className="cart-total">
-          <h2>Cart Totals</h2>
-          <div>
-            <div className="cart-total-details">
-              <p>Subtotal</p>
-              <p>{formatPrice(subtotal)}</p>
+        <div className="order-summary">
+          <h3>Order Summary</h3>
+          <div className="summary-item">
+            <span>Subtotal:</span>
+            <span>₹{formatPrice(calculateSubtotal())}</span>
+          </div>
+          <div className="summary-item">
+            <span>Delivery Fee:</span>
+            <span>₹{formatPrice(deliveryFee)}</span>
+          </div>
+          {usePoints && points >= POINTS_REQUIRED && (
+            <div className="summary-item discount">
+              <span>Loyalty Points Discount (50%):</span>
+              <span>-₹{formatPrice((subtotal + deliveryFee) * 0.5)}</span>
             </div>
-            <div className="cart-total-details">
-              <p>Delivery Fee</p>
-              <p>{formatPrice(deliveryFee)}</p>
+          )}
+          <div className="summary-item total">
+            <span>Total:</span>
+            <span>₹{formatPrice(calculateTotal())}</span>
+          </div>
+
+          <div className="loyalty-preview">
+            <div className="loyalty-header">
+              <FaStar className="star-icon" />
+              <h4>Loyalty Points Preview</h4>
             </div>
-            {usePoints && points >= POINTS_REQUIRED && (
-              <div className="cart-total-details discount">
-                <p>Loyalty Points Discount (50%)</p>
-                <p>-{formatPrice((subtotal + deliveryFee) * 0.5)}</p>
+            {!usePoints && (
+              <div className="points-calculation">
+                <p>You'll earn approximately:</p>
+                <span className="points-estimate">
+                  +{Math.floor((calculateTotal() / 100) * 10)} points
+                </span>
+                <p className="points-explanation">
+                  (10 points for every ₹100 spent)
+                </p>
               </div>
             )}
-            <hr />
-            <div className="cart-total-details">
-              <b>Total</b>
-              <b>{formatPrice(total)}</b>
-            </div>
-
-            <div className="loyalty-points-section">
-              <div className="points-info">
-                <span>Available Points: {points}</span>
-                {points >= POINTS_REQUIRED && (
-                  <span className="eligible">Eligible for 50% discount!</span>
-                )}
-              </div>
-              {!usePoints ? (
-                <button
-                  type="button"
-                  onClick={handleApplyPoints}
+            {points >= 300 && !usePoints && (
+              <div className="loyalty-action">
+                <div className="points-available">
+                  <FaInfoCircle className="info-icon" />
+                  <p>You have {points} points available</p>
+                </div>
+                <button 
                   className="apply-points-btn"
-                  disabled={points < POINTS_REQUIRED}
+                  onClick={handleApplyLoyaltyPoints}
                 >
-                  Apply Points
+                  Apply 300 Points for 50% Off
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleRemovePoints}
+              </div>
+            )}
+            {usePoints && (
+              <div className="points-applied">
+                <p>✨ 50% Discount Applied!</p>
+                <button 
                   className="remove-points-btn"
+                  onClick={handleRemoveLoyaltyPoints}
                 >
                   Remove Discount
                 </button>
-              )}
-            </div>
+              </div>
+            )}
+            {points < 300 && (
+              <div className="points-progress-info">
+                <p>Collect {300 - points} more points for a 50% discount!</p>
+                <div className="mini-progress-bar">
+                  <div 
+                    className="progress" 
+                    style={{ width: `${(points / 300) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </div>
-
-          <div className="payment-methods">
-            <h3>Payment Method</h3>
-            <div className="payment-options">
-              <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.STRIPE ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value={PAYMENT_METHODS.STRIPE}
-                  checked={selectedPayment === PAYMENT_METHODS.STRIPE}
-                  onChange={(e) => setSelectedPayment(e.target.value)}
-                />
-                <FaCreditCard className="payment-icon" />
-                <span>Credit/Debit Card</span>
-              </label>
-
-              <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.KHALTI ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value={PAYMENT_METHODS.KHALTI}
-                  checked={selectedPayment === PAYMENT_METHODS.KHALTI}
-                  onChange={(e) => setSelectedPayment(e.target.value)}
-                />
-                <FaMobile className="payment-icon" />
-                <span>Khalti</span>
-              </label>
-
-              <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.ESEWA ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value={PAYMENT_METHODS.ESEWA}
-                  checked={selectedPayment === PAYMENT_METHODS.ESEWA}
-                  onChange={(e) => setSelectedPayment(e.target.value)}
-                />
-                <FaMobile className="payment-icon" />
-                <span>eSewa</span>
-              </label>
-
-              <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.FONEPAY ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value={PAYMENT_METHODS.FONEPAY}
-                  checked={selectedPayment === PAYMENT_METHODS.FONEPAY}
-                  onChange={(e) => setSelectedPayment(e.target.value)}
-                />
-                <FaMobile className="payment-icon" />
-                <span>FonePay</span>
-              </label>
-
-              <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.CASH ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value={PAYMENT_METHODS.CASH}
-                  checked={selectedPayment === PAYMENT_METHODS.CASH}
-                  onChange={(e) => setSelectedPayment(e.target.value)}
-                />
-                <FaMoneyBillWave className="payment-icon" />
-                <span>Cash on Delivery</span>
-              </label>
-            </div>
-          </div>
-
-          <button 
-            type="submit"
-            className="place-order-button"
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : selectedPayment === PAYMENT_METHODS.STRIPE ? 'Proceed to Payment' : 'Place Order'}
-          </button>
         </div>
+
+        <div className="payment-methods">
+          <h3>Payment Method</h3>
+          <div className="payment-options">
+            <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.STRIPE ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="payment"
+                value={PAYMENT_METHODS.STRIPE}
+                checked={selectedPayment === PAYMENT_METHODS.STRIPE}
+                onChange={(e) => setSelectedPayment(e.target.value)}
+              />
+              <FaCreditCard className="payment-icon" />
+              <span>Credit/Debit Card</span>
+            </label>
+
+            <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.KHALTI ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="payment"
+                value={PAYMENT_METHODS.KHALTI}
+                checked={selectedPayment === PAYMENT_METHODS.KHALTI}
+                onChange={(e) => setSelectedPayment(e.target.value)}
+              />
+              <FaMobile className="payment-icon" />
+              <span>Khalti</span>
+            </label>
+
+            <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.ESEWA ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="payment"
+                value={PAYMENT_METHODS.ESEWA}
+                checked={selectedPayment === PAYMENT_METHODS.ESEWA}
+                onChange={(e) => setSelectedPayment(e.target.value)}
+              />
+              <FaMobile className="payment-icon" />
+              <span>eSewa</span>
+            </label>
+
+            <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.FONEPAY ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="payment"
+                value={PAYMENT_METHODS.FONEPAY}
+                checked={selectedPayment === PAYMENT_METHODS.FONEPAY}
+                onChange={(e) => setSelectedPayment(e.target.value)}
+              />
+              <FaMobile className="payment-icon" />
+              <span>FonePay</span>
+            </label>
+
+            <label className={`payment-option ${selectedPayment === PAYMENT_METHODS.CASH ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="payment"
+                value={PAYMENT_METHODS.CASH}
+                checked={selectedPayment === PAYMENT_METHODS.CASH}
+                onChange={(e) => setSelectedPayment(e.target.value)}
+              />
+              <FaMoneyBillWave className="payment-icon" />
+              <span>Cash on Delivery</span>
+            </label>
+          </div>
+        </div>
+
+        <button 
+          type="submit"
+          className="place-order-button"
+          disabled={loading}
+        >
+          {loading ? 'Processing...' : selectedPayment === PAYMENT_METHODS.STRIPE ? 'Proceed to Payment' : 'Place Order'}
+        </button>
       </div>
     </form>
   );

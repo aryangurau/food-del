@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
-import { FaUser, FaEnvelope, FaPhone, FaEdit, FaStar } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaEdit, FaStar, FaInfoCircle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { StoreContext } from '../../context/StoreContext';
 import axios from 'axios';
@@ -146,6 +146,22 @@ const Profile = () => {
                 <span>100</span>
                 <span>200</span>
                 <span>300</span>
+              </div>
+              <div className="loyalty-info">
+                <div className="info-header">
+                  <FaInfoCircle className="info-icon" />
+                  <h4>How Points Work</h4>
+                </div>
+                <ul>
+                  <li>Earn 10 points for every ₹100 spent on orders</li>
+                  <li>Reach 300 points to get a 50% discount on your next order</li>
+                  <li>Points are not earned when redeeming a discount</li>
+                </ul>
+                {loyaltyPoints >= 300 && (
+                  <div className="points-milestone-reached">
+                    🎉 Congratulations! You can now get a 50% discount on your next order!
+                  </div>
+                )}
               </div>
             </div>
           </div>

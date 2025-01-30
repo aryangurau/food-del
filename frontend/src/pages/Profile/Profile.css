@@ -114,6 +114,60 @@
   font-size: 0.9rem;
 }
 
+.loyalty-info {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #fff8e1;
+  border-radius: 8px;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.info-icon {
+  color: #ffa000;
+  font-size: 1.2rem;
+}
+
+.info-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.loyalty-info ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: none;
+}
+
+.loyalty-info li {
+  margin-bottom: 0.5rem;
+  color: #555;
+  position: relative;
+}
+
+.loyalty-info li:before {
+  content: "•";
+  color: #ffa000;
+  position: absolute;
+  left: -1rem;
+}
+
+.points-milestone-reached {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #e8f5e9;
+  border-radius: 6px;
+  color: #2e7d32;
+  font-weight: 500;
+  text-align: center;
+}
+
 .edit-profile-btn {
   margin-top: 2rem;
   width: 100%;

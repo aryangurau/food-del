@@ -302,6 +302,137 @@
   font-weight: bold;
 }
 
+.loyalty-preview {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #fff8e1;
+  border-radius: 8px;
+}
+
+.loyalty-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.star-icon {
+  color: #ffd700;
+  font-size: 1.2rem;
+}
+
+.loyalty-header h4 {
+  margin: 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.points-calculation {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.points-estimate {
+  display: block;
+  font-size: 1.5rem;
+  color: #4caf50;
+  font-weight: 500;
+  margin: 0.5rem 0;
+}
+
+.points-explanation {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.loyalty-action {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #ffa000;
+}
+
+.points-available {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.info-icon {
+  color: #ffa000;
+}
+
+.points-available p {
+  margin: 0;
+  color: #333;
+}
+
+.apply-points-btn, .remove-points-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.apply-points-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.apply-points-btn:hover {
+  background: #43a047;
+}
+
+.remove-points-btn {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.remove-points-btn:hover {
+  background: #ffcdd2;
+}
+
+.points-applied {
+  text-align: center;
+  padding: 1rem;
+  background: #e8f5e9;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.points-applied p {
+  margin: 0 0 0.75rem 0;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.points-progress-info {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.points-progress-info p {
+  margin: 0 0 0.75rem 0;
+  color: #666;
+}
+
+.mini-progress-bar {
+  height: 6px;
+  background: #ffe0b2;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-progress-bar .progress {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700 0%, #ffa000 100%);
+  transition: width 0.3s ease;
+}
+
 @media (max-width: 1024px) {
   .place-order {
     flex-direction: column;
