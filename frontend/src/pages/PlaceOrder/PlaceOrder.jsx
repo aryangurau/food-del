@@ -71,7 +71,7 @@ const PlaceOrder = () => {
     }
 
     const subtotal = getTotalCartAmount();
-    const deliveryFee = subtotal > 0 ? 50 : 0;
+    const deliveryFee = subtotal > 0 ? 20 : 0;
     const total = subtotal + deliveryFee;
 
     const orderData = {
@@ -168,7 +168,7 @@ const PlaceOrder = () => {
   }, [token]);
 
   const subtotal = getTotalCartAmount();
-  const deliveryFee = subtotal > 0 ? 50 : 0;
+  const deliveryFee = subtotal > 0 ? 20 : 0;
   const total = subtotal + deliveryFee;
 
   return (
