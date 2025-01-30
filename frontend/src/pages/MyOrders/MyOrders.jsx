@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fa';
 
 const MyOrders = () => {
-  const { url, token } = useContext(StoreContext);
+  const { url, token, formatPrice } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trackingId, setTrackingId] = useState(null);
@@ -177,7 +177,7 @@ const MyOrders = () => {
                 {order.items.slice(0, 3).map((item, index) => (
                   <img 
                     key={`${order._id}-${item.productId}-${index}`}
-                    src={item.image?.startsWith('http') ? item.image : `${url}/${item.image}`}
+                    src={item.image?.startsWith('http') ? item.image : `${url}/images/${item.image}`}
                     alt={item.name}
                     className={`order-food-image ${index > 0 ? 'stacked' : ''}`}
                     title={item.name}
@@ -201,7 +201,7 @@ const MyOrders = () => {
                   ))}
                 </div>
                 <p className="order-amount">
-                  Total: <span>${(order.totalAmount || 0).toFixed(2)}</span>
+                  Total: <span>{formatPrice(order.totalAmount)}</span>
                 </p>
                 <p className="order-count">Items: <span>{order.items.length}</span></p>
                 <p className="order-payment">

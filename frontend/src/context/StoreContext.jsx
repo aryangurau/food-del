@@ -176,15 +176,18 @@ const StoreContextProvider = (props) => {
     let totalAmount = 0;
     for (const item in cartItems) {
       if (cartItems[item] > 0) {
-        let itemInfo = food_list.find((product) => product._id === item);
-        if (itemInfo) { 
+        let itemInfo = food_list.find((food) => food._id === item);
+        if (itemInfo) {
           totalAmount += itemInfo.price * cartItems[item];
-        } else {
-          console.warn(`Product with ID ${item} not found in food_list`);
         }
       }
     }
     return totalAmount;
+  };
+
+  const formatPrice = (amount) => {
+    if (typeof amount !== 'number') return 'NPR 0';
+    return `NPR ${amount.toLocaleString('en-NP')}`;
   };
 
   //Fetching food list from database
@@ -269,11 +272,13 @@ const StoreContextProvider = (props) => {
     removeFromCart,
     getTotalCartAmount,
     clearCart,
-    url,
     token,
     setToken,
-    user, 
+    user,
+    url,
+    formatPrice
   };
+
   return (
     <StoreContext.Provider value={contextValue}>
       {props.children}

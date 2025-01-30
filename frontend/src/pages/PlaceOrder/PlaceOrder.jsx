@@ -15,7 +15,7 @@ const PAYMENT_METHODS = {
 };
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount, token, food_list, cartItems, url, clearCart } =
+  const { getTotalCartAmount, token, food_list, cartItems, url, clearCart, formatPrice } =
     useContext(StoreContext);
   const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS.STRIPE);
   const [loading, setLoading] = useState(false);
@@ -70,11 +70,13 @@ const PlaceOrder = () => {
       return;
     }
 
-    const totalAmount = getTotalCartAmount() + 2;
+    const subtotal = getTotalCartAmount();
+    const deliveryFee = subtotal > 0 ? 50 : 0;
+    const total = subtotal + deliveryFee;
 
     const orderData = {
       items: orderItems,
-      amount: totalAmount,
+      amount: total,
       paymentMethod: selectedPayment,
       status: "preparing",
       address: {
@@ -144,6 +146,10 @@ const PlaceOrder = () => {
       navigate("/cart");
     }
   }, [token]);
+
+  const subtotal = getTotalCartAmount();
+  const deliveryFee = subtotal > 0 ? 50 : 0;
+  const total = subtotal + deliveryFee;
 
   return (
     <form onSubmit={(e) => e.preventDefault()} className="place-order">
@@ -235,19 +241,17 @@ const PlaceOrder = () => {
           <div>
             <div className="cart-total-details">
               <p>Subtotal</p>
-              <p>₹{getTotalCartAmount()}</p>
+              <p>{formatPrice(subtotal)}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <p>Delivery Fee</p>
-              <p>₹{getTotalCartAmount() === 0 ? 0 : 2}</p>
+              <p>{formatPrice(deliveryFee)}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>
-                ₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}
-              </b>
+              <b>{formatPrice(total)}</b>
             </div>
           </div>
 
