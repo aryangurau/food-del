@@ -80,9 +80,14 @@ const orderSchema = new mongoose.Schema({
     sparse: true,
     unique: true
   },
+  transactionId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
   status: {
     type: String,
-    enum: ["pending", "preparing", "prepared", "ontheway", "delivered", "cancelled"],
+    enum: ["pending", "preparing", "prepared", "ontheway", "delivered", "cancelled", "completed"],
     default: "pending",
   },
   address: {

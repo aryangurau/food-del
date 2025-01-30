@@ -4,6 +4,7 @@ import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 import LoyaltyTransaction from "../models/loyaltyTransactionModel.js";
 import LoyaltyReward from "../models/loyaltyRewardModel.js";
+import axios from 'axios';
 import { sendEmail } from "../utils/mailer.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -54,6 +55,59 @@ const handleLoyaltyPoints = async (userId, orderId, totalAmount, usePoints) => {
   }
 };
 
+// Helper function to verify payment status for Nepalese payment gateways
+const verifyNepalPayment = async (paymentMethod, transactionId, amount) => {
+  try {
+    switch (paymentMethod) {
+      case 'khalti':
+        // Verify Khalti payment
+        const khaltiResponse = await axios.post(
+          'https://khalti.com/api/v2/payment/verify/',
+          {
+            token: transactionId,
+            amount: amount
+          },
+          {
+            headers: {
+              'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`
+            }
+          }
+        );
+        return khaltiResponse.data.state === 'Completed';
+
+      case 'esewa':
+        // Verify eSewa payment
+        const esewaResponse = await axios.get(
+          `https://esewa.com.np/api/v1/transaction/${transactionId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.ESEWA_SECRET_KEY}`
+            }
+          }
+        );
+        return esewaResponse.data.status === 'SUCCESS';
+
+      case 'fonepay':
+        // Verify FonePay payment
+        const fonepayResponse = await axios.get(
+          `https://fonepay.com/api/v1/verify/${transactionId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.FONEPAY_SECRET_KEY}`
+            }
+          }
+        );
+        return fonepayResponse.data.status === 'Completed';
+
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`Error verifying ${paymentMethod} payment:`, error);
+    return false;
+  }
+};
+
 const placeOrder = async (req, res) => {
   const frontend_url = "http://localhost:5173"; 
   try {
@@ -64,219 +118,290 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const { items, amount, address, usePoints } = req.body;
+    const { items, amount, address, usePoints, paymentMethod } = req.body;
     const userId = req.user._id;
 
-    // Validate required fields
-    if (!items || !amount || !address) {
-      return res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${[
-          !items && 'items',
-          !amount && 'amount',
-          !address && 'address'
-        ].filter(Boolean).join(', ')}`
-      });
-    }
-
-    // Validate items array
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Items must be a non-empty array"
-      });
-    }
-
-    // Validate each item has required fields
-    const itemValidation = items.every(item => {
-      const hasRequiredFields = item._id && item.name && 
-                              typeof item.price === 'number' && 
-                              typeof item.quantity === 'number';
-      return hasRequiredFields;
-    });
-
-    if (!itemValidation) {
-      return res.status(400).json({
-        success: false,
-        message: "Each item must have _id, name, price, and quantity"
-      });
-    }
-
-    // Create line items for Stripe
-    const line_items = items.map((item) => ({
-      price_data: {
-        currency: "USD",
-        product_data: { 
-          name: item.name,
-          metadata: {
-            productId: item._id
-          }
-        },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quantity: item.quantity,
-    }));
-
-    // Add delivery charge
-    line_items.push({
-      price_data: {
-        currency: "USD",
-        product_data: { 
-          name: "Delivery Charges"
-        },
-        unit_amount: 200,
-      },
-      quantity: 1,
-    });
-
-    // Create metadata
-    const metadata = {
-      userId: userId.toString(),
-      items: JSON.stringify(items.map(item => ({
+    // Create initial order
+    const order = new orderModel({
+      userId,
+      items: items.map(item => ({
         productId: item._id,
         name: item.name,
         price: item.price,
         quantity: item.quantity
-      }))),
-      address: JSON.stringify(address),
-      totalAmount: amount + 2, // Add delivery charge
-      usePoints: usePoints ? 'true' : 'false'
-    };
-
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items,
-      mode: "payment",
-      success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontend_url}/verify?success=false`,
-      metadata: metadata,
-      payment_intent_data: {
-        metadata: metadata
-      }
+      })),
+      totalAmount: amount,
+      address,
+      paymentMethod,
+      status: "pending",
+      paymentStatus: "pending",
+      usePoints
     });
 
-    res.json({
-      success: true,
-      url: session.url
-    });
+    await order.save();
+
+    // Handle different payment methods
+    switch (paymentMethod) {
+      case 'stripe':
+        // Create line items for Stripe
+        const line_items = items.map((item) => ({
+          price_data: {
+            currency: "USD",
+            product_data: { 
+              name: item.name,
+              metadata: {
+                productId: item._id
+              }
+            },
+            unit_amount: Math.round(item.price * 100),
+          },
+          quantity: item.quantity,
+        }));
+
+        // Add delivery charge
+        line_items.push({
+          price_data: {
+            currency: "USD",
+            product_data: { 
+              name: "Delivery Charges"
+            },
+            unit_amount: 200,
+          },
+          quantity: 1,
+        });
+
+        // Create metadata
+        const metadata = {
+          userId: userId.toString(),
+          items: JSON.stringify(items.map(item => ({
+            productId: item._id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+          }))),
+          address: JSON.stringify(address),
+          totalAmount: amount + 2, // Add delivery charge
+          usePoints: usePoints ? 'true' : 'false'
+        };
+
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items,
+          mode: "payment",
+          success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${frontend_url}/verify?success=false`,
+          metadata: metadata,
+          payment_intent_data: {
+            metadata: metadata
+          }
+        });
+
+        res.json({
+          success: true,
+          url: session.url
+        });
+        break;
+
+      case 'khalti':
+        return res.json({
+          success: true,
+          orderId: order._id,
+          paymentUrl: `https://khalti.com/payment/${order._id}`,
+          publicKey: process.env.KHALTI_PUBLIC_KEY
+        });
+
+      case 'esewa':
+        return res.json({
+          success: true,
+          orderId: order._id,
+          paymentUrl: `https://esewa.com.np/pay/${order._id}`,
+          merchantCode: process.env.ESEWA_MERCHANT_CODE
+        });
+
+      case 'fonepay':
+        return res.json({
+          success: true,
+          orderId: order._id,
+          paymentUrl: `https://fonepay.com/pay/${order._id}`,
+          merchantCode: process.env.FONEPAY_MERCHANT_CODE
+        });
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: "Invalid payment method"
+        });
+    }
   } catch (error) {
     console.error("Place order error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to place order"
+      message: error.message || "Failed to place order"
     });
   }
 };
 
 const verifyOrder = async (req, res) => {
   try {
-    const { session_id } = req.query;
+    const { session_id, payment_method, transaction_id } = req.query;
     
-    if (!session_id) {
-      console.error("No session_id provided in query");
-      return res.status(400).json({
-        success: false,
-        message: "Session ID is required"
-      });
-    }
-
-    // Check if an order with this session ID already exists
-    const existingOrder = await orderModel.findOne({ sessionId: session_id });
-    if (existingOrder) {
-      console.log("Order already exists for session:", session_id);
-      return res.json({
-        success: true,
-        message: "Order already processed",
-        orderId: existingOrder._id
-      });
-    }
-
-    console.log("Retrieving session:", session_id);
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    console.log("Session retrieved:", session.payment_status);
-    
-    if (!session) {
-      console.error("No session found for ID:", session_id);
-      return res.status(404).json({
-        success: false,
-        message: "Session not found"
-      });
-    }
-
-    if (session.payment_status === "paid") {
-      try {
-        // Get metadata from session first, fallback to payment intent
-        let metadata = session.metadata;
-        
-        if (!metadata || !metadata.items || !metadata.address || !metadata.userId || !metadata.totalAmount) {
-          console.log("Metadata not found in session, checking payment intent...");
-          const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
-          metadata = paymentIntent.metadata;
-        }
-
-        if (!metadata || !metadata.items || !metadata.address || !metadata.userId || !metadata.totalAmount) {
-          console.error("Missing metadata in both session and payment intent");
-          return res.status(400).json({
-            success: false,
-            message: "Missing order information in payment"
-          });
-        }
-
-        console.log("Processing order with metadata:", metadata);
-        const items = JSON.parse(metadata.items);
-        const address = JSON.parse(metadata.address);
-        const userId = metadata.userId;
-        const totalAmount = parseFloat(metadata.totalAmount);
-        const usePoints = metadata.usePoints === 'true';
-
-        // Create order with session ID
-        const order = new orderModel({
-          userId,
-          items: items.map(item => ({
-            productId: item.productId,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity
-          })),
-          totalAmount,
-          address,
-          paymentMethod: "stripe",
-          status: "preparing",
-          paymentStatus: "completed",
-          sessionId: session_id
-        });
-
-        console.log("Saving order for user:", userId);
-        await order.save();
-
-        // Handle loyalty points
-        await handleLoyaltyPoints(userId, order._id, totalAmount, usePoints);
-
-        // Update user's order history
-        console.log("Updating user order history");
-        await userModel.findByIdAndUpdate(
-          userId,
-          { $push: { orders: order._id } }
-        );
-
-        return res.json({
-          success: true,
-          message: "Payment verified and order created",
-          orderId: order._id
-        });
-      } catch (error) {
-        console.error("Error processing payment intent:", error);
-        return res.status(500).json({
+    // Handle Stripe payments
+    if (payment_method === 'stripe') {
+      if (!session_id) {
+        console.error("No session_id provided for Stripe payment");
+        return res.status(400).json({
           success: false,
-          message: "Error processing payment details"
+          message: "Session ID is required for Stripe payment"
         });
       }
-    } else {
-      console.log("Payment not completed. Status:", session.payment_status);
-      return res.status(400).json({
-        success: false,
-        message: "Payment not completed"
+
+      // Check if an order with this session ID already exists
+      const existingOrder = await orderModel.findOne({ sessionId: session_id });
+      if (existingOrder) {
+        console.log("Order already exists for session:", session_id);
+        return res.json({
+          success: true,
+          message: "Order already processed",
+          orderId: existingOrder._id
+        });
+      }
+
+      console.log("Retrieving session:", session_id);
+      const session = await stripe.checkout.sessions.retrieve(session_id);
+      console.log("Session retrieved:", session.payment_status);
+      
+      if (!session) {
+        console.error("No session found for ID:", session_id);
+        return res.status(404).json({
+          success: false,
+          message: "Session not found"
+        });
+      }
+
+      if (session.payment_status === "paid") {
+        try {
+          // Get metadata from session first, fallback to payment intent
+          let metadata = session.metadata;
+          
+          if (!metadata || !metadata.items || !metadata.address || !metadata.userId || !metadata.totalAmount) {
+            console.log("Metadata not found in session, checking payment intent...");
+            const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
+            metadata = paymentIntent.metadata;
+          }
+
+          if (!metadata || !metadata.items || !metadata.address || !metadata.userId || !metadata.totalAmount) {
+            console.error("Missing metadata in both session and payment intent");
+            return res.status(400).json({
+              success: false,
+              message: "Missing order information in payment"
+            });
+          }
+
+          console.log("Processing order with metadata:", metadata);
+          const items = JSON.parse(metadata.items);
+          const address = JSON.parse(metadata.address);
+          const userId = metadata.userId;
+          const totalAmount = parseFloat(metadata.totalAmount);
+          const usePoints = metadata.usePoints === 'true';
+
+          // Create order with session ID
+          const order = new orderModel({
+            userId,
+            items: items.map(item => ({
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            })),
+            totalAmount,
+            address,
+            paymentMethod: "stripe",
+            status: "pending", // Changed from "preparing" to "pending"
+            paymentStatus: "completed",
+            sessionId: session_id
+          });
+
+          console.log("Saving order for user:", userId);
+          await order.save();
+
+          // Handle loyalty points
+          await handleLoyaltyPoints(userId, order._id, totalAmount, usePoints);
+
+          // Update user's order history
+          console.log("Updating user order history");
+          await userModel.findByIdAndUpdate(
+            userId,
+            { $push: { orders: order._id } }
+          );
+
+          return res.json({
+            success: true,
+            message: "Payment verified and order created",
+            orderId: order._id
+          });
+        } catch (error) {
+          console.error("Error processing payment intent:", error);
+          return res.status(500).json({
+            success: false,
+            message: "Error processing payment details"
+          });
+        }
+      } else {
+        console.log("Payment not completed. Status:", session.payment_status);
+        return res.status(400).json({
+          success: false,
+          message: "Payment not completed"
+        });
+      }
+    } else if (['khalti', 'esewa', 'fonepay'].includes(payment_method)) {
+      // Handle Nepalese payment gateways
+      if (!transaction_id) {
+        return res.status(400).json({
+          success: false,
+          message: "Transaction ID is required"
+        });
+      }
+
+      // Verify the payment
+      const pendingOrder = await orderModel.findOne({ 
+        transactionId: transaction_id,
+        paymentMethod: payment_method
+      });
+
+      if (!pendingOrder) {
+        return res.status(404).json({
+          success: false,
+          message: "Order not found"
+        });
+      }
+
+      const isPaymentVerified = await verifyNepalPayment(payment_method, transaction_id, pendingOrder.totalAmount);
+      
+      if (!isPaymentVerified) {
+        return res.status(400).json({
+          success: false,
+          message: "Payment verification failed"
+        });
+      }
+
+      // Update order status
+      pendingOrder.paymentStatus = "completed";
+      pendingOrder.status = "pending"; // Keep it pending for restaurant to process
+      await pendingOrder.save();
+
+      // Handle loyalty points
+      await handleLoyaltyPoints(
+        pendingOrder.userId, 
+        pendingOrder._id, 
+        pendingOrder.totalAmount, 
+        pendingOrder.usePoints
+      );
+
+      return res.json({
+        success: true,
+        message: "Payment verified and order updated",
+        orderId: pendingOrder._id
       });
     }
   } catch (error) {
@@ -290,17 +415,10 @@ const verifyOrder = async (req, res) => {
 
 const placeInstantOrder = async (req, res) => {
   try {
-    if (!req.user || !req.user._id) {
-      return res.status(401).json({
-        success: false,
-        message: "User not authenticated"
-      });
-    }
-
-    const { items, amount, address, paymentMethod, usePoints } = req.body;
+    const { items, amount, address } = req.body;
     const userId = req.user._id;
 
-    // Create order directly
+    // Create the order
     const order = new orderModel({
       userId,
       items: items.map(item => ({
@@ -309,17 +427,14 @@ const placeInstantOrder = async (req, res) => {
         price: item.price,
         quantity: item.quantity
       })),
-      totalAmount: amount + 2, // Add delivery charge
+      totalAmount: amount,
       address,
-      paymentMethod,
-      status: "preparing",
-      paymentStatus: paymentMethod === 'cash' ? "pending" : "completed" // Set pending for COD
+      paymentMethod: "cash",
+      status: "pending",
+      paymentStatus: "pending"
     });
 
     await order.save();
-
-    // Handle loyalty points
-    await handleLoyaltyPoints(userId, order._id, amount, usePoints);
 
     // Update user's order history
     await userModel.findByIdAndUpdate(
