@@ -14,6 +14,9 @@ const PAYMENT_METHODS = {
   CASH: 'cash'
 };
 
+const POINTS_REQUIRED = 300;
+const DISCOUNT_PERCENT = 50;
+
 const PlaceOrder = () => {
   const { getTotalCartAmount, token, food_list, cartItems, url, clearCart, formatPrice } =
     useContext(StoreContext);
@@ -30,6 +33,27 @@ const PlaceOrder = () => {
     country: "",
     phone: "",
   });
+  const [usePoints, setUsePoints] = useState(false);
+  const [points, setPoints] = useState(0);
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const response = await axios.get(`${url}/api/loyalty/points`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.data.success) {
+          setPoints(response.data.points);
+        }
+      } catch (error) {
+        console.error("Error fetching points:", error);
+      }
+    };
+
+    if (token) {
+      fetchPoints();
+    }
+  }, [token, url]);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -37,20 +61,9 @@ const PlaceOrder = () => {
     setData((data) => ({ ...data, [name]: value }));
   };
 
-  const placeOrder = async () => {
-    if (!token) {
-      toast.error("Please login to place an order");
-      navigate("/login");
-      return;
-    }
-
-    // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'email', 'street', 'city', 'state', 'zipcode', 'country', 'phone'];
-    const missingFields = requiredFields.filter(field => !data[field]);
-    if (missingFields.length > 0) {
-      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
-      return;
-    }
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
     const orderItems = [];
     food_list.forEach((item) => {
@@ -72,13 +85,20 @@ const PlaceOrder = () => {
 
     const subtotal = getTotalCartAmount();
     const deliveryFee = subtotal > 0 ? 20 : 0;
-    const total = subtotal + deliveryFee;
+    let total = subtotal + deliveryFee;
+
+    // Apply loyalty points discount if selected
+    if (usePoints && points >= POINTS_REQUIRED) {
+      const discount = total * (DISCOUNT_PERCENT / 100); // 50% discount
+      total -= discount;
+    }
 
     const orderData = {
       items: orderItems,
       amount: total,
       paymentMethod: selectedPayment,
       status: "preparing",
+      usePoints: usePoints && points >= POINTS_REQUIRED,
       address: {
         street: data.street,
         city: data.city,
@@ -91,62 +111,35 @@ const PlaceOrder = () => {
       }
     };
 
-    setLoading(true);
-
     try {
+      let endpoint = '';
       if (selectedPayment === PAYMENT_METHODS.STRIPE) {
-        // Use existing Stripe payment flow
-        const response = await axios.post(`${url}/api/order/place`, orderData, {
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'token': token,
-            'Content-Type': 'application/json'
-          },
-        });
+        endpoint = `${url}/api/order/place`;
+      } else if (selectedPayment === PAYMENT_METHODS.CASH) {
+        endpoint = `${url}/api/order/create`;
+      } else {
+        endpoint = `${url}/api/order/place-instant`;
+      }
 
-        if (response.data.success) {
+      const response = await axios.post(endpoint, orderData, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'token': token,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (response.data.success) {
+        if (selectedPayment === PAYMENT_METHODS.STRIPE) {
           const { url: checkoutUrl } = response.data;
           window.location.replace(checkoutUrl);
         } else {
-          toast.error(response.data.message || "Failed to place order");
-        }
-      } else if (selectedPayment === PAYMENT_METHODS.CASH) {
-        const response = await axios.post(
-          `${url}/api/order/create`,
-          orderData,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        if (response.data.success) {
           toast.success("Order placed successfully!");
-          await clearCart();
+          clearCart();
           navigate("/my-orders");
-        } else {
-          setLoading(false);
-          toast.error(response.data.message || "Failed to place order");
         }
       } else {
-        // Simulate instant success for other payment methods
-        const response = await axios.post(`${url}/api/order/place-instant`, orderData, {
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'token': token,
-            'Content-Type': 'application/json'
-          },
-        });
-
-        if (response.data.success) {
-          toast.success("Order placed successfully!");
-          clearCart(); // Clear the cart after successful order
-          navigate("/my-orders"); // Update navigation path to match route
-        } else {
-          toast.error(response.data.message || "Failed to place order");
-        }
+        toast.error(response.data.message || "Failed to place order");
       }
     } catch (error) {
       console.error("Error placing order:", error);
@@ -167,12 +160,32 @@ const PlaceOrder = () => {
     }
   }, [token]);
 
+  const handleApplyPoints = () => {
+    if (points >= POINTS_REQUIRED) {
+      setUsePoints(true);
+      toast.success(`${DISCOUNT_PERCENT}% discount applied using ${POINTS_REQUIRED} points!`);
+    } else {
+      toast.error(`You need ${POINTS_REQUIRED} points to get ${DISCOUNT_PERCENT}% discount. You have ${points} points.`);
+    }
+  };
+
+  const handleRemovePoints = () => {
+    setUsePoints(false);
+    toast.success('Points discount removed');
+  };
+
   const subtotal = getTotalCartAmount();
   const deliveryFee = subtotal > 0 ? 20 : 0;
-  const total = subtotal + deliveryFee;
+  let total = subtotal + deliveryFee;
+
+  // Apply loyalty points discount if selected
+  if (usePoints && points >= POINTS_REQUIRED) {
+    const discount = total * (DISCOUNT_PERCENT / 100); // 50% discount
+    total -= discount;
+  }
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="place-order">
+    <form onSubmit={handlePlaceOrder} className="place-order">
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">
@@ -263,15 +276,47 @@ const PlaceOrder = () => {
               <p>Subtotal</p>
               <p>{formatPrice(subtotal)}</p>
             </div>
-            <hr />
             <div className="cart-total-details">
               <p>Delivery Fee</p>
               <p>{formatPrice(deliveryFee)}</p>
             </div>
+            {usePoints && points >= POINTS_REQUIRED && (
+              <div className="cart-total-details discount">
+                <p>Loyalty Points Discount (50%)</p>
+                <p>-{formatPrice((subtotal + deliveryFee) * 0.5)}</p>
+              </div>
+            )}
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
               <b>{formatPrice(total)}</b>
+            </div>
+
+            <div className="loyalty-points-section">
+              <div className="points-info">
+                <span>Available Points: {points}</span>
+                {points >= POINTS_REQUIRED && (
+                  <span className="eligible">Eligible for 50% discount!</span>
+                )}
+              </div>
+              {!usePoints ? (
+                <button
+                  type="button"
+                  onClick={handleApplyPoints}
+                  className="apply-points-btn"
+                  disabled={points < POINTS_REQUIRED}
+                >
+                  Apply Points
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleRemovePoints}
+                  className="remove-points-btn"
+                >
+                  Remove Discount
+                </button>
+              )}
             </div>
           </div>
 
@@ -341,8 +386,7 @@ const PlaceOrder = () => {
           </div>
 
           <button 
-            type="button" 
-            onClick={placeOrder}
+            type="submit"
             className="place-order-button"
             disabled={loading}
           >

@@ -239,6 +239,69 @@
   border-top: 1px dashed #ddd;
 }
 
+.loyalty-points-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.points-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.points-info .eligible {
+  color: #2ecc71;
+  font-weight: 500;
+}
+
+.apply-points-btn, .remove-points-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.apply-points-btn {
+  background: #2ecc71;
+  color: white;
+}
+
+.apply-points-btn:hover:not(:disabled) {
+  background: #27ae60;
+}
+
+.apply-points-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.remove-points-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.remove-points-btn:hover {
+  background: #c0392b;
+}
+
+.cart-total-details.discount {
+  color: #2ecc71;
+  font-weight: 500;
+}
+
+.cart-total-details.discount p:last-child {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
 @media (max-width: 1024px) {
   .place-order {
     flex-direction: column;

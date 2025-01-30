@@ -1,11 +1,45 @@
-import dotenv from "dotenv";
-dotenv.config();
+import express from "express";
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
+import LoyaltyTransaction from "../models/loyaltyTransactionModel.js";
+import LoyaltyReward from "../models/loyaltyRewardModel.js";
 import { sendEmail } from "../utils/mailer.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Helper function to handle loyalty points
+const handleLoyaltyPoints = async (userId, orderId, totalAmount, usePoints) => {
+  try {
+    // Handle points redemption
+    if (usePoints) {
+      const pointsTransaction = new LoyaltyTransaction({
+        userId,
+        orderId,
+        points: 300, // Points required for 50% discount
+        type: 'redeem',
+        description: 'Redeemed points for 50% order discount'
+      });
+      await pointsTransaction.save();
+    }
+
+    // Add points for the purchase (1 point per USD)
+    const pointsEarned = Math.floor(totalAmount);
+    if (pointsEarned > 0) {
+      const earnTransaction = new LoyaltyTransaction({
+        userId,
+        orderId,
+        points: pointsEarned,
+        type: 'earn',
+        description: `Earned ${pointsEarned} points from order`
+      });
+      await earnTransaction.save();
+    }
+  } catch (error) {
+    console.error("Error handling loyalty points:", error);
+    // Don't throw error to prevent order processing failure
+  }
+};
 
 const placeOrder = async (req, res) => {
   const frontend_url = "http://localhost:5173"; 
@@ -17,7 +51,7 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    const { items, amount, address } = req.body;
+    const { items, amount, address, usePoints } = req.body;
     const userId = req.user._id;
 
     // Validate required fields
@@ -92,7 +126,8 @@ const placeOrder = async (req, res) => {
         quantity: item.quantity
       }))),
       address: JSON.stringify(address),
-      totalAmount: amount + 2 // Add delivery charge
+      totalAmount: amount + 2, // Add delivery charge
+      usePoints: usePoints ? 'true' : 'false'
     };
 
     // Create Stripe checkout session
@@ -180,6 +215,7 @@ const verifyOrder = async (req, res) => {
         const address = JSON.parse(metadata.address);
         const userId = metadata.userId;
         const totalAmount = parseFloat(metadata.totalAmount);
+        const usePoints = metadata.usePoints === 'true';
 
         // Create order with session ID
         const order = new orderModel({
@@ -195,11 +231,14 @@ const verifyOrder = async (req, res) => {
           paymentMethod: "stripe",
           status: "preparing",
           paymentStatus: "completed",
-          sessionId: session_id  // Save the session ID with the order
+          sessionId: session_id
         });
 
         console.log("Saving order for user:", userId);
         await order.save();
+
+        // Handle loyalty points
+        await handleLoyaltyPoints(userId, order._id, totalAmount, usePoints);
 
         // Update user's order history
         console.log("Updating user order history");
@@ -229,7 +268,7 @@ const verifyOrder = async (req, res) => {
     }
   } catch (error) {
     console.error("Verify order error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: error.message || "Failed to verify order"
     });
@@ -245,7 +284,7 @@ const placeInstantOrder = async (req, res) => {
       });
     }
 
-    const { items, amount, address, paymentMethod } = req.body;
+    const { items, amount, address, paymentMethod, usePoints } = req.body;
     const userId = req.user._id;
 
     // Create order directly
@@ -265,6 +304,9 @@ const placeInstantOrder = async (req, res) => {
     });
 
     await order.save();
+
+    // Handle loyalty points
+    await handleLoyaltyPoints(userId, order._id, amount, usePoints);
 
     // Update user's order history
     await userModel.findByIdAndUpdate(
