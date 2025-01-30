@@ -13,7 +13,7 @@ import { Server } from "socket.io";
 import http from "http";
 import foodModel from "./models/foodModel.js";
 import orderModel from "./models/orderModel.js";
-
+import loyaltyRouter from "./routes/loyaltyRoute.js";
 // App config
 const app = express();
 const port = process.env.PORT || 4000;
@@ -43,6 +43,7 @@ app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/loyalty", loyaltyRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working");

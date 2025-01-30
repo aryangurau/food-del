@@ -3,22 +3,29 @@ import userModel from "../models/userModel.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.token;
-    console.log("Received token:", token ? "exists" : "missing");
+    console.log("Headers received:", req.headers);
+    const authHeader = req.headers.authorization;
+    console.log("Full authorization header:", authHeader);
     
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log("Invalid auth header format. Header:", authHeader);
       return res.status(401).json({ 
         success: false, 
-        message: "Authentication token is missing" 
+        message: "Authentication token is missing or invalid" 
       });
     }
 
+    const token = authHeader.split(' ')[1];
+    console.log("Extracted token:", token);
+    
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded token:", decoded);
+      console.log("Decoded token payload:", decoded);
 
       // Get fresh user data from database
       const user = await userModel.findById(decoded.id);
+      console.log("Found user:", user ? "yes" : "no", user ? `(id: ${user._id})` : "");
+      
       if (!user) {
         console.log("No user found for id:", decoded.id);
         return res.status(401).json({
@@ -27,27 +34,35 @@ const authMiddleware = async (req, res, next) => {
         });
       }
 
+      if (user.isBlocked) {
+        console.log("User is blocked:", user._id);
+        return res.status(403).json({
+          success: false,
+          message: "Your account has been blocked"
+        });
+      }
+
       // Attach user to request
       req.user = {
-        _id: user._id,
+        _id: user._id, 
         email: user.email,
         role: user.role
       };
       console.log("User attached to request:", req.user);
-      
       next();
-    } catch (jwtError) {
-      console.error("JWT verification failed:", jwtError);
+    } catch (error) {
+      console.log("Token verification error:", error.message);
+      console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
       return res.status(401).json({
         success: false,
-        message: "Invalid token"
+        message: "Invalid authentication token"
       });
     }
   } catch (error) {
     console.error("Auth middleware error:", error);
     return res.status(500).json({
       success: false,
-      message: "Authentication failed"
+      message: "Internal server error"
     });
   }
 };

@@ -173,32 +173,66 @@ const StoreContextProvider = (props) => {
       console.error("Error fetching food list:", error);
     }
   };
+
   const loadCartData = async () => {
-    if (!token) return;
-    
+    if (!token) {
+      // If no token, try to load from localStorage
+      const savedCart = localStorage.getItem('cartItems');
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          setCartItems(parsedCart);
+        } catch (error) {
+          console.error("Error parsing saved cart:", error);
+          setCartItems({});
+        }
+      }
+      return;
+    }
+
     try {
-      const response = await axios.get(url + "/api/cart/get", {
-        headers: { token }
+      const response = await axios.get(`${url}/api/cart/get`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
+
       if (response.data.success) {
-        setCartItems(response.data.cartData || {});
+        setCartItems(response.data.cartData);
+        localStorage.setItem('cartItems', JSON.stringify(response.data.cartData));
+      } else {
+        throw new Error(response.data.message);
       }
     } catch (error) {
       console.error("Error loading cart:", error);
       toast.error("Failed to load cart data");
-    }
-  };
-  useEffect(() => {
-    async function loadData() {
-      await fetchFoodList();
-      if (localStorage.getItem("token")) {
-        setToken(localStorage.getItem("token"));
-        await loadCartData();
+      
+      // Fallback to localStorage if API fails
+      const savedCart = localStorage.getItem('cartItems');
+      if (savedCart) {
+        try {
+          setCartItems(JSON.parse(savedCart));
+        } catch (e) {
+          setCartItems({});
+        }
       }
     }
+  };
 
-    loadData();
-  }, []);
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        await fetchFoodList();
+        await loadCartData();
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      }
+    };
+    loadInitialData();
+  }, [token]); // Re-run when token changes
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const contextValue = {
     food_list,
