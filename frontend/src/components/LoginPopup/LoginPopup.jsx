@@ -5,7 +5,7 @@ import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 
 const LoginPopup = ({ setShowLogin }) => {
-  const { url, setToken } = useContext(StoreContext);
+  const { url, setToken, setUser } = useContext(StoreContext);
 
   const [currState, setCurrState] = useState("Login");
   const [data, setData] = useState({
@@ -34,8 +34,26 @@ const LoginPopup = ({ setShowLogin }) => {
     try {
       const response = await axios.post(newUrl, data);
       if (response.data.success) {
-        setToken(response.data.token);
-        localStorage.setItem("token", response.data.token);
+        // Store token
+        const token = response.data.token;
+        setToken(token);
+        localStorage.setItem("token", token);
+
+        // Store user data
+        const userData = {
+          name: response.data.user.name,
+          email: response.data.user.email,
+          phone: response.data.user.phone,
+          id: response.data.user._id
+        };
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+
+        // Initialize loyalty points if not exists
+        if (!localStorage.getItem("loyaltyPoints")) {
+          localStorage.setItem("loyaltyPoints", "0");
+        }
+
         setShowLogin(false);
       } else {
         alert(response.data.message);

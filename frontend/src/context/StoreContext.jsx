@@ -35,12 +35,15 @@ const getRandomMessage = (type, itemName) => {
   return list[Math.floor(Math.random() * list.length)];
 };
 
-const StoreContextProvider = (props) => {
+const StoreContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState({});
   const url = "http://localhost:4000";
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [food_list, setFoodList] = useState([]);
-  const [user, setUser] = useState(null);
 
   const fetchUserFromToken = () => {
     if (token) {
@@ -281,13 +284,14 @@ const StoreContextProvider = (props) => {
     token,
     setToken,
     user,
+    setUser,
     url,
     formatPrice
   };
 
   return (
     <StoreContext.Provider value={contextValue}>
-      {props.children}
+      {children}
     </StoreContext.Provider>
   );
 };

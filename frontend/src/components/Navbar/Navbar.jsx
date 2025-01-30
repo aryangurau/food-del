@@ -4,7 +4,7 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
-// import FoodDecoration from '../FoodDecoration/FoodDecoration';
+import { FaSearch, FaShoppingCart, FaBell, FaUser } from "react-icons/fa";
 import Profile from '../Profile/Profile';
 
 const Navbar = ({ setShowLogin }) => {
@@ -85,7 +85,6 @@ const Navbar = ({ setShowLogin }) => {
 
   return (
     <div className="navbar-container">
-      {/* <FoodDecoration /> */}
       <div className="navbar">
         <Link to="/" onClick={() => handleMenuClick("home")}>
           <img src={assets.icon} alt="" className="logo" />
@@ -235,10 +234,7 @@ const Navbar = ({ setShowLogin }) => {
               <p className="welcome-message">Welcome, {user?.name || "User"}</p>
               <img src={assets.profile_icon} alt="" />
               <ul className={`nav-profile-dropdown ${isProfileOpen ? "show" : ""}`}>
-                <li onClick={() => {
-                  setShowProfileModal(true);
-                  setIsProfileOpen(false);
-                }}>
+                <li onClick={() => navigate('/profile')}>
                   <img src={assets.user_icon} alt="" />
                   <p>My Profile</p>
                 </li>
