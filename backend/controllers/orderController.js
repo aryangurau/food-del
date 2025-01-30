@@ -11,33 +11,46 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Helper function to handle loyalty points
 const handleLoyaltyPoints = async (userId, orderId, totalAmount, usePoints) => {
   try {
-    // Handle points redemption
+    // If using points, deduct 300 points and don't add new points
     if (usePoints) {
+      // Check if user has enough points
+      const transactions = await LoyaltyTransaction.find({ userId });
+      const currentPoints = transactions.reduce((acc, curr) => 
+        curr.type === 'earn' ? acc + curr.points : acc - curr.points, 0);
+
+      if (currentPoints < 300) {
+        throw new Error('Insufficient loyalty points');
+      }
+
+      // Deduct 300 points
       const pointsTransaction = new LoyaltyTransaction({
         userId,
         orderId,
-        points: 300, // Points required for 50% discount
+        points: 300,
         type: 'redeem',
-        description: 'Redeemed points for 50% order discount'
+        source: 'redemption',
+        description: 'Redeemed 300 points for order discount'
       });
       await pointsTransaction.save();
+      return; // Don't add new points when redeeming
     }
 
-    // Add points for the purchase (1 point per USD)
-    const pointsEarned = Math.floor(totalAmount);
+    // Calculate points (10 points per 100 rupees)
+    const pointsEarned = Math.floor((totalAmount / 100) * 10);
     if (pointsEarned > 0) {
       const earnTransaction = new LoyaltyTransaction({
         userId,
         orderId,
         points: pointsEarned,
         type: 'earn',
+        source: 'order',
         description: `Earned ${pointsEarned} points from order`
       });
       await earnTransaction.save();
     }
   } catch (error) {
     console.error("Error handling loyalty points:", error);
-    // Don't throw error to prevent order processing failure
+    throw error; // Throw error to handle in order processing
   }
 };
 
