@@ -79,15 +79,30 @@ const StoreContextProvider = (props) => {
       toast.success(getRandomMessage('addMore', item.name));
     }
 
+    // Save to localStorage
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+    // Sync with backend if logged in
     if (token) {
       try {
-        await axios.post(
-          url + "/api/cart/add",
+        const response = await axios.post(
+          `${url}/api/cart/add`,
           { itemId },
-          { headers: { token } }
+          { 
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
         );
+
+        if (response.data.success) {
+          setCartItems(response.data.cartData);
+          localStorage.setItem('cartItems', JSON.stringify(response.data.cartData));
+        }
       } catch (error) {
-        toast.error("Failed to sync cart. Please try again.");
+        console.error('Failed to sync cart:', error);
+        toast.error("Failed to sync with server. Please try again.");
       }
     }
   };
@@ -116,19 +131,31 @@ const StoreContextProvider = (props) => {
           },
         });
       }
+      localStorage.setItem('cartItems', JSON.stringify(newCart));
       return newCart;
     });
 
-    // Sync with backend
+    // Sync with backend if logged in
     if (token) {
       try {
-        await axios.post(
-          url + "/api/cart/remove",
+        const response = await axios.post(
+          `${url}/api/cart/remove`,
           { itemId },
-          { headers: { token } }
+          { 
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
         );
+
+        if (response.data.success) {
+          setCartItems(response.data.cartData);
+          localStorage.setItem('cartItems', JSON.stringify(response.data.cartData));
+        }
       } catch (error) {
-        toast.error("Failed to sync cart. Please try again.");
+        console.error('Failed to sync cart:', error);
+        toast.error("Failed to sync with server. Please try again.");
       }
     }
   };
