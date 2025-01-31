@@ -105,6 +105,10 @@ export const AppProvider = ({ children }) => {
     setNotifications(prev => [notification, ...prev]);
   };
 
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
   return (
     <AppContext.Provider value={{
       theme: themes[theme],
@@ -120,7 +124,8 @@ export const AppProvider = ({ children }) => {
       addToWishlist,
       removeFromWishlist,
       notifications,
-      addNotification
+      addNotification,
+      clearNotifications
     }}>
       {children}
     </AppContext.Provider>

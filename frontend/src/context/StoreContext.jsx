@@ -45,6 +45,8 @@ const StoreContextProvider = ({ children }) => {
   });
   const [food_list, setFoodList] = useState([]);
 
+
+
   const fetchUserFromToken = () => {
     if (token) {
       try {

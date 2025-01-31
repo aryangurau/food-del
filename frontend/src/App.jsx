@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route,useLocation } from "react-router-dom";
 import { AppProvider } from './context/AppContext';
 import { StoreContext } from './context/StoreContext';
 import Navbar from "./components/Navbar/Navbar";
@@ -12,6 +12,7 @@ import Loyalty from "./pages/Loyalty/Loyalty";
 import Cart from "./pages/Cart/Cart";
 import PlaceOrder from "./pages/PlaceOrder/PlaceOrder";
 import LoginPopup from "./components/LoginPopup/LoginPopup";
+import ComplaintBox from "./components/ComplaintBox/ComplaintBox";
 import Footer from "./components/Footer/Footer";
 import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
@@ -20,7 +21,9 @@ import ChatComponent from "./components/ChatComponent/ChatComponent";
 import Profile from "./pages/Profile/Profile";
 import { Toaster } from 'react-hot-toast';
 
+
 const App = () => {
+
   const [showLogin, setShowLogin] = useState(false);
 
   return (
@@ -32,7 +35,9 @@ const App = () => {
 
 // Separate component to use StoreContext
 const AppContent = ({ showLogin, setShowLogin }) => {
-  const { token } = useContext(StoreContext);
+  
+  const { token, user} = useContext(StoreContext);
+ 
 
   return (
     <>
@@ -93,7 +98,6 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/menu" element={<Menu />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/notifications" element={<Notifications />} />
           <Route path="/loyalty" element={<Loyalty />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/cart" element={<Cart />} />
@@ -101,6 +105,8 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/verify" element={<Verify />} />
           <Route path="/my-orders" element={<MyOrders/>} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/complaint" element={<ComplaintBox  userId={user.id}  />}  />
+
         </Routes>
       </div>
       <Footer />

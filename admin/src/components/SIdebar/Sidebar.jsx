@@ -25,6 +25,11 @@ const Sidebar = () => {
           <img src={assets.profile_image} alt="" />
           <p>Users</p>
         </NavLink>
+
+        <NavLink to="/complaint" className="sidebar-option">
+          <img src={assets.parcel_icon} alt="" />
+          <p>Complaint box</p>
+        </NavLink>
       </div>
     </div>
   );
