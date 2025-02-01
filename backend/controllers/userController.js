@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 import { sendEmail } from "../utils/mailer.js";
+import crypto from 'crypto';
+
 import { genOTP } from "../utils/token.js";
 
 const createToken = (id, name) => {
@@ -200,4 +202,114 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, getUsers, deleteUser, updateUserStatus };
+
+// Forgot password functionality
+const forgotPassword = async (req, res) => {
+  try {
+    console.log('Forgot password request received:', req.body);
+    const { email } = req.body;
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      console.log('User not found for email:', email);
+
+      return res.status(404).json({
+        success: false,
+        message: "User with this email doesn't exist",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+
+    // Save reset token to user
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpire = resetTokenExpiry;
+    await user.save();
+
+    // Create reset URL
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    // Send email
+    const message = `
+      You requested a password reset. Please click on the link below to reset your password:
+      \n\n${resetUrl}\n\n
+      If you didn't request this, please ignore this email.
+    `;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Request',
+        htmlMessage:`
+            <p>You requested a password reset. Please click on the link below to reset your password:</p>
+            <p><a href="${resetUrl}">${resetUrl}</a></p>
+            <p>If you didn't request this, please ignore this email.</p>
+          `,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Password reset link sent to email',
+      });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+
+      return res.status(500).json({
+        success: false,
+        message: 'Email could not be sent',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+// Reset password functionality
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // Find user with the reset token and check if token is expired
+    const user = await userModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password reset token is invalid or has expired',
+      });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+
+
+export { loginUser, registerUser, getUsers, deleteUser, updateUserStatus , forgotPassword, resetPassword};

@@ -3,9 +3,11 @@ import "./LoginPopup.css";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
+import ForgotPassword from "../ForgotPassword/ForgotPassword";
 
 const LoginPopup = ({ setShowLogin }) => {
   const { url, setToken, setUser } = useContext(StoreContext);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const [currState, setCurrState] = useState("Login");
   const [data, setData] = useState({
@@ -67,6 +69,7 @@ const LoginPopup = ({ setShowLogin }) => {
   };
 
   return (
+    
     <div className="login-popup">
       <form onSubmit={onLogin} className="login-popup-container">
         <div className="login-popup-title">
@@ -85,6 +88,7 @@ const LoginPopup = ({ setShowLogin }) => {
                 onChange={onChangeHandler}
                 required
               />
+              
             </div>
           )}
           {currState === "Sign Up" && (
@@ -128,6 +132,15 @@ const LoginPopup = ({ setShowLogin }) => {
           </div>
         </div>
 
+{/* Add this before your login button */}
+<button 
+  type="button" 
+  className="forgot-password-btn" 
+  onClick={() => setShowForgotPassword(true)}
+>
+  Forgot Password?
+</button>
+
         <button type="submit" disabled={loading}>
           {loading ? "Processing..." : currState === "Sign Up" ? "Create account" : "Login"}
         </button>
@@ -144,6 +157,9 @@ const LoginPopup = ({ setShowLogin }) => {
           </span>
         </p>
       </form>
+      {showForgotPassword && (
+      <ForgotPassword setShowForgotPassword={setShowForgotPassword} />
+    )}
     </div>
   );
 };
