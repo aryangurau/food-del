@@ -22,7 +22,7 @@ const Verify = () => {
         }
 
         console.log("Verifying payment with session:", sessionId);
-        const response = await axios.get(`${url}/api/order/verify?session_id=${sessionId}`);
+        const response = await axios.get(`${url}/api/order/verify?session_id=${sessionId}&payment_method=stripe`);
         console.log("Verification response:", response.data);
 
         if (response.data.success) {
