@@ -112,6 +112,8 @@ const StoreContextProvider = ({ children }) => {
     }
   };
 
+  
+
   const removeFromCart = async (itemId) => {
     const item = food_list.find(item => item._id === itemId);
     
