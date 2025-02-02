@@ -121,20 +121,84 @@ const placeOrder = async (req, res) => {
     const { items, amount, address, usePoints, paymentMethod } = req.body;
     const userId = req.user._id;
 
-    // Create initial order
+    // For Stripe payments, don't create the order yet
+    if (paymentMethod === 'stripe') {
+      // Create line items for Stripe
+      const line_items = items.map((item) => ({
+        price_data: {
+          currency: "USD",
+          product_data: { 
+            name: item.name,
+            metadata: {
+              productId: item._id
+            }
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
+
+      // Add delivery charge
+      line_items.push({
+        price_data: {
+          currency: "USD",
+          product_data: { 
+            name: "Delivery Charges"
+          },
+          unit_amount: 200,
+        },
+        quantity: 1,
+      });
+
+      // Create metadata
+      const metadata = {
+        userId: userId.toString(),
+        items: JSON.stringify(items.map(item => ({
+          productId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))),
+        address: JSON.stringify(address),
+        totalAmount: amount + 2, // Add delivery charge
+        usePoints: usePoints ? 'true' : 'false'
+      };
+
+      // Create Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items,
+        mode: "payment",
+        success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}&payment_method=stripe`,
+        cancel_url: `${frontend_url}/verify?success=false&payment_method=stripe`,
+        metadata: metadata,
+        payment_intent_data: {
+          metadata: metadata
+        }
+      });
+
+      return res.json({
+        success: true,
+        url: session.url
+      });
+    }
+
+    // For non-Stripe payments, create the order immediately
     const order = new orderModel({
       userId,
       items: items.map(item => ({
         productId: item._id,
         name: item.name,
         price: item.price,
-        quantity: item.quantity
+        quantity: item.quantity,
+        paymentMethod:"esewa",
+
       })),
       totalAmount: amount,
       address,
-      paymentMethod,
-      status: "pending",
-      paymentStatus: "pending",
+      paymentMethod:"esewa",
+      status: paymentMethod === 'esewa' ? 'preparing' : 'pending',
+      paymentStatus: paymentMethod === 'esewa' ? 'pending' : 'pending',
       usePoints
     });
 
@@ -142,67 +206,6 @@ const placeOrder = async (req, res) => {
 
     // Handle different payment methods
     switch (paymentMethod) {
-      case 'stripe':
-        // Create line items for Stripe
-        const line_items = items.map((item) => ({
-          price_data: {
-            currency: "USD",
-            product_data: { 
-              name: item.name,
-              metadata: {
-                productId: item._id
-              }
-            },
-            unit_amount: Math.round(item.price * 100),
-          },
-          quantity: item.quantity,
-        }));
-
-        // Add delivery charge
-        line_items.push({
-          price_data: {
-            currency: "USD",
-            product_data: { 
-              name: "Delivery Charges"
-            },
-            unit_amount: 200,
-          },
-          quantity: 1,
-        });
-
-        // Create metadata
-        const metadata = {
-          userId: userId.toString(),
-          items: JSON.stringify(items.map(item => ({
-            productId: item._id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity
-          }))),
-          address: JSON.stringify(address),
-          totalAmount: amount + 2, // Add delivery charge
-          usePoints: usePoints ? 'true' : 'false'
-        };
-
-        // Create Stripe checkout session
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          line_items,
-          mode: "payment",
-          success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${frontend_url}/verify?success=false`,
-          metadata: metadata,
-          payment_intent_data: {
-            metadata: metadata
-          }
-        });
-
-        res.json({
-          success: true,
-          url: session.url
-        });
-        break;
-
       case 'khalti':
         return res.json({
           success: true,
@@ -227,6 +230,13 @@ const placeOrder = async (req, res) => {
           merchantCode: process.env.FONEPAY_MERCHANT_CODE
         });
 
+      case 'cash':
+        return res.json({
+          success: true,
+          orderId: order._id,
+          message: "Order placed successfully"
+        });
+
       default:
         return res.status(400).json({
           success: false,
@@ -244,7 +254,7 @@ const placeOrder = async (req, res) => {
 
 const verifyOrder = async (req, res) => {
   try {
-    const { session_id, payment_method, transaction_id } = req.query;
+    const { session_id, payment_method } = req.query;
     
     // Handle Stripe payments
     if (payment_method === 'stripe') {
@@ -317,9 +327,10 @@ const verifyOrder = async (req, res) => {
             totalAmount,
             address,
             paymentMethod: "stripe",
-            status: "pending", // Changed from "preparing" to "pending"
+            status: "preparing", // Set to preparing since payment is confirmed
             paymentStatus: "completed",
-            sessionId: session_id
+            sessionId: session_id,
+            usePoints
           });
 
           console.log("Saving order for user:", userId);
@@ -354,56 +365,57 @@ const verifyOrder = async (req, res) => {
           message: "Payment not completed"
         });
       }
-    } else if (['khalti', 'esewa', 'fonepay'].includes(payment_method)) {
-      // Handle Nepalese payment gateways
-      if (!transaction_id) {
-        return res.status(400).json({
-          success: false,
-          message: "Transaction ID is required"
-        });
-      }
+    }
 
-      // Verify the payment
-      const pendingOrder = await orderModel.findOne({ 
-        transactionId: transaction_id,
-        paymentMethod: payment_method
-      });
-
-      if (!pendingOrder) {
-        return res.status(404).json({
-          success: false,
-          message: "Order not found"
-        });
-      }
-
-      const isPaymentVerified = await verifyNepalPayment(payment_method, transaction_id, pendingOrder.totalAmount);
-      
-      if (!isPaymentVerified) {
-        return res.status(400).json({
-          success: false,
-          message: "Payment verification failed"
-        });
-      }
-
-      // Update order status
-      pendingOrder.paymentStatus = "completed";
-      pendingOrder.status = "pending"; // Keep it pending for restaurant to process
-      await pendingOrder.save();
-
-      // Handle loyalty points
-      await handleLoyaltyPoints(
-        pendingOrder.userId, 
-        pendingOrder._id, 
-        pendingOrder.totalAmount, 
-        pendingOrder.usePoints
-      );
-
-      return res.json({
-        success: true,
-        message: "Payment verified and order updated",
-        orderId: pendingOrder._id
+    // For other payment methods (khalti, esewa, fonepay)
+    // Just update the existing order's payment status
+    const { transaction_id } = req.query;
+    if (!transaction_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Transaction ID is required"
       });
     }
+
+    const pendingOrder = await orderModel.findOne({ 
+      transactionId: transaction_id,
+      paymentMethod: payment_method
+    });
+
+    if (!pendingOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    const isPaymentVerified = await verifyNepalPayment(payment_method, transaction_id, pendingOrder.totalAmount);
+    
+    if (!isPaymentVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment verification failed"
+      });
+    }
+
+    // Update order status
+    pendingOrder.paymentStatus = "completed";
+    pendingOrder.status = "preparing"; // Set to preparing since payment is verified
+    await pendingOrder.save();
+
+    // Handle loyalty points
+    await handleLoyaltyPoints(
+      pendingOrder.userId, 
+      pendingOrder._id, 
+      pendingOrder.totalAmount, 
+      pendingOrder.usePoints
+    );
+
+    return res.json({
+      success: true,
+      message: "Payment verified and order updated",
+      orderId: pendingOrder._id
+    });
   } catch (error) {
     console.error("Verify order error:", error);
     res.status(500).json({
@@ -415,8 +427,18 @@ const verifyOrder = async (req, res) => {
 
 const placeInstantOrder = async (req, res) => {
   try {
-    const { items, amount, address } = req.body;
+    const { items, amount, address ,paymentMethod, usePoints} = req.body;
+    
     const userId = req.user._id;
+// Determine payment status based on payment method
+let paymentStatus = "pending"; // default status
+    
+// Set payment status for different payment methods
+if (["khalti", "esewa", "fonepay"].includes(paymentMethod)) {
+  paymentStatus = "completed";
+} else if (paymentMethod === "COD") {
+  paymentStatus = "pending";
+}
 
     // Create the order
     const order = new orderModel({
@@ -425,16 +447,21 @@ const placeInstantOrder = async (req, res) => {
         productId: item._id,
         name: item.name,
         price: item.price,
-        quantity: item.quantity
+        quantity: item.quantity,
+        usePoints: usePoints || false
       })),
       totalAmount: amount,
       address,
-      paymentMethod: "cash",
-      status: "pending",
-      paymentStatus: "pending"
+      paymentMethod,
+      status: "preparing",
+      paymentStatus,
     });
 
     await order.save();
+
+     // Handle loyalty points
+     await handleLoyaltyPoints(userId, order._id, amount, usePoints);
+
 
     // Update user's order history
     await userModel.findByIdAndUpdate(

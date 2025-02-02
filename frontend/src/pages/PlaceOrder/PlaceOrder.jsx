@@ -115,8 +115,8 @@ const PlaceOrder = () => {
       let endpoint = '';
       if (selectedPayment === PAYMENT_METHODS.STRIPE) {
         endpoint = `${url}/api/order/place`;
-      } else if (selectedPayment === PAYMENT_METHODS.CASH) {
-        endpoint = `${url}/api/order/create`;
+      } else if (selectedPayment === PAYMENT_METHODS.ESEWA || selectedPayment === PAYMENT_METHODS.KHALTI || selectedPayment === PAYMENT_METHODS.FONEPAY) {
+        endpoint = `${url}/api/order/place-instant`;
       } else {
         endpoint = `${url}/api/order/place-instant`;
       }
