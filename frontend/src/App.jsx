@@ -20,7 +20,8 @@ import SearchResults from "./components/SearchResult/SearchResults";
 import ChatComponent from "./components/ChatComponent/ChatComponent";
 import Profile from "./pages/Profile/Profile";
 import { Toaster } from 'react-hot-toast';
-
+import VerifyForgotPassword from "./components/VerifyFp/VerifyForgotPassword"
+import ResetPassword from "./components/ResetPass/ResetPassword";
 
 const App = () => {
 
@@ -106,6 +107,8 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/my-orders" element={<MyOrders/>} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/complaint" element={<ComplaintBox  userId={user.id}  />}  />
+          <Route path="/verify-otp" element={<VerifyForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
         </Routes>
       </div>

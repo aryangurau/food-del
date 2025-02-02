@@ -12,8 +12,9 @@ const userSchema = new mongoose.Schema(
     token: String,
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     totalPoints: { type: Number, default: 0 },
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
+
+resetPasswordOTP: String,
+resetPasswordExpire: Date
     
   },
   { minimize: false }

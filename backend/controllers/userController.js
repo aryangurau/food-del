@@ -202,8 +202,7 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
-
-// Forgot password functionality
+//forgot password
 const forgotPassword = async (req, res) => {
   try {
     console.log('Forgot password request received:', req.body);
@@ -212,51 +211,41 @@ const forgotPassword = async (req, res) => {
 
     if (!user) {
       console.log('User not found for email:', email);
-
       return res.status(404).json({
         success: false,
         message: "User with this email doesn't exist",
       });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    const resetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
 
-    // Save reset token to user
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = resetTokenExpiry;
+    // Save OTP to user
+    user.resetPasswordOTP = otp;
+    user.resetPasswordExpire = otpExpiry;
     await user.save();
 
-    // Create reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    // Send email
-    const message = `
-      You requested a password reset. Please click on the link below to reset your password:
-      \n\n${resetUrl}\n\n
-      If you didn't request this, please ignore this email.
-    `;
-
+    // Send email with OTP
     try {
       await sendEmail({
         to: user.email,
-        subject: 'Password Reset Request',
-        htmlMessage:`
-            <p>You requested a password reset. Please click on the link below to reset your password:</p>
-            <p><a href="${resetUrl}">${resetUrl}</a></p>
-            <p>If you didn't request this, please ignore this email.</p>
-          `,
+        subject: 'Password Reset OTP',
+        htmlMessage: `
+          <h2>Password Reset Request</h2>
+          <p>Your OTP for password reset is: <strong>${otp}</strong></p>
+          <p>This OTP will expire in 10 minutes.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        `,
       });
 
       res.status(200).json({
         success: true,
-        message: 'Password reset link sent to email',
+        message: 'OTP sent to email',
       });
     } catch (error) {
       console.error('Forgot password error:', error);
-
-      user.resetPasswordToken = undefined;
+      user.resetPasswordOTP = undefined;
       user.resetPasswordExpire = undefined;
       await user.save();
 
@@ -273,43 +262,77 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset password functionality
-const resetPassword = async (req, res) => {
+// Add new verify OTP endpoint
+const verifyOTP = async (req, res) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
-
-    // Find user with the reset token and check if token is expired
-    const user = await userModel.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpire: { $gt: Date.now() },
+    const { email, otp } = req.body;
+    const user = await userModel.findOne({ 
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordExpire: { $gt: Date.now() }
     });
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Password reset token is invalid or has expired',
+        message: "Invalid or expired OTP",
       });
     }
 
-    // Set new password
-    user.password = password;
-    user.resetPasswordToken = undefined;
+    // OTP is valid
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Reset Password (Modified version)
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    
+    const user = await userModel.findOne({
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP"
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password and clear reset fields
+    user.password = hashedPassword;
+    user.resetPasswordOTP = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'Password reset successful',
+      message: "Password reset successful"
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: "Internal server error"
     });
   }
 };
 
 
 
-export { loginUser, registerUser, getUsers, deleteUser, updateUserStatus , forgotPassword, resetPassword};
+export { loginUser, registerUser, getUsers, deleteUser, updateUserStatus , forgotPassword, resetPassword, verifyOTP};

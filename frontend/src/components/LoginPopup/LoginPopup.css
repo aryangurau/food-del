@@ -209,6 +209,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
 }
 
 .terms-privacy input[type="checkbox"] {
@@ -216,12 +217,14 @@
   height: 16px;
   cursor: pointer;
   accent-color: tomato;
+  cursor: pointer;
 }
 
-.terms-privacy p {
+.terms-privacy label {
   margin: 0;
   color: white;
   opacity: 0.9;
+  cursor: pointer;
 }
 
 .error-message {

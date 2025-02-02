@@ -2,8 +2,10 @@ import React, { useState, useContext } from 'react';
 import { StoreContext } from '../../context/StoreContext';
 import { toast } from 'react-toastify';
 import './ForgotPassword.css';
+import { useNavigate } from 'react-router-dom';
 
 const ForgotPassword = ({ setShowForgotPassword }) => {
+  const navigate = useNavigate();
   const { url } = useContext(StoreContext);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,6 +15,8 @@ const ForgotPassword = ({ setShowForgotPassword }) => {
     setLoading(true);
 
     try {
+      console.log('Sending forgot password request for email:', email); // Add this debug log
+
       const response = await fetch(`${url}/api/user/forgot-password`, {
         method: 'POST',
         headers: {
@@ -22,15 +26,20 @@ const ForgotPassword = ({ setShowForgotPassword }) => {
       });
 
       const data = await response.json();
+      console.log('Forgot password response:', data); // Add this debug log
+
 
       if (data.success) {
-        toast.success('Password reset link sent to your email!');
+        toast.success('Otp has been sent to your email');
+        navigate('/verify-otp', { state: { email: email } });
         setShowForgotPassword(false);
+       
       } else {
         toast.error(data.message || 'Something went wrong');
       }
     } catch (error) {
-      toast.error('Failed to send reset link');
+      console.error('Error in forgot password:', error); // Add this debug log
+      toast.error('Failed to send otp');
     } finally {
       setLoading(false);
     }
@@ -56,7 +65,7 @@ const ForgotPassword = ({ setShowForgotPassword }) => {
             />
           </div>
           <button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {loading ? 'Sending...' : 'Send OTP'}
           </button>
         </form>
       </div>

@@ -147,7 +147,7 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <div className="terms-privacy">
           <input type="checkbox" id="terms" required />
-          <p>By continuing, I agree to the terms of use & privacy policy</p>
+          <label htmlFor="terms">By continuing, I agree to the terms of use & privacy policy</label>
         </div>
 
         <p className="toggle-state">
