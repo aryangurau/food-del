@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Landing.css';
+import { assets } from '../../assets/assets';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -93,7 +94,10 @@ const Landing = () => {
             </div>
           </div>
           <div className="hero-image scroll-animate">
-            <img src="/src/assets/hero-food-collage.png" alt="Food Collage" />
+            <img src={assets.burger} alt="Food Collage" />
+          </div>
+          <div className="hero-image scroll-animate">
+            <img src={assets.chicken} alt="Food Collage" />
           </div>
         </div>
       </section>
@@ -223,13 +227,13 @@ const Landing = () => {
             </svg>
           </div>
           <div className="partner-logo esewa scroll-animate">
-            <img src="/images/payment/esewa.png" alt="eSewa" />
+            <img src={assets.esewa} alt="eSewa" />
           </div>
           <div className="partner-logo khalti scroll-animate">
-            <img src="/images/payment/khalti.png" alt="Khalti" />
+            <img src={assets.khalti} alt="Khalti" />
           </div>
           <div className="partner-logo fonepay scroll-animate">
-            <img src="/images/payment/fonepay.png" alt="FonePay" />
+            <img src={assets.fonepay} alt="FonePay" />
           </div>
           <div className="partner-logo cod scroll-animate">
             <div className="cod-icon">
@@ -253,7 +257,7 @@ const Landing = () => {
           </div>
         </div>
         <div className="app-preview scroll-animate">
-          <img src="/src/assets/app-preview.png" alt="App Preview" />
+          <img src={assets.app} alt="App Preview" />
         </div>
       </section>
 

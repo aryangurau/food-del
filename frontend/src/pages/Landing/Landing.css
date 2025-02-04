@@ -37,10 +37,11 @@
   padding: 1rem;
 }
 
+
 .partner-logo img {
-  max-width: 100%;
-  max-height: 40px;
-  object-fit: contain;
+  width: 100%;
+  height: 40px;
+  object-fit: cover;
 }
 
 .partner-logo.stripe svg {
@@ -48,10 +49,11 @@
   width: auto;
 }
 
-.partner-logo.esewa,
-.partner-logo.khalti,
-.partner-logo.fonepay {
-  padding: 0.75rem;
+.partner-logo .esewa,
+.partner-logo .khalti,
+.partner-logo .fonepay {
+  padding: 0.5rem;
+
 }
 
 .partner-logo:hover {
@@ -81,7 +83,13 @@
   color: white;
   position: relative;
   padding: 5rem 0;
+  /* height: 405px; */
 }
+ /* .app-preview img{
+  object-fit: cover;
+  position: absolute;
+  top: -60px;
+} */
 
 .download-content {
   max-width: 1200px;
@@ -109,6 +117,9 @@
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 2rem;
+  /* position: absolute;
+  top: 50%;
+  left: 40px; */
 }
 
 .app-buttons {

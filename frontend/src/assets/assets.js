@@ -50,6 +50,12 @@ import food_29 from "./food_29.png";
 import food_30 from "./food_30.png";
 import food_31 from "./food_31.png";
 import food_32 from "./food_32.png";
+import burger from "./burger.png";
+import esewa from "./esewa.png";
+import khalti from "./khalti.png";
+import fonepay from "./fonepay.png";
+import app from "./app.png";
+
 
 import add_icon_white from "./add_icon_white.png";
 import add_icon_green from "./add_icon_green.png";
@@ -78,7 +84,12 @@ export const assets = {
   avishek,
   shikha,
   bot,
+  esewa,
+  khalti,
+  fonepay,
   chicken,
+  burger,
+  app,
   basket_icon,
   logo,
   logoo,
