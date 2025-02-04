@@ -332,6 +332,30 @@
   height: 80px;
   pointer-events: none;
 }
+.navbar-complaint {
+  position: relative;
+  cursor: pointer;
+  margin: 0 1px;
+ top: 2px;
+ 
+ 
+}
+
+.navbar-complaint .complaint-icon {
+  font-size: 23px;
+  color: #4B5563;
+  transition: color 0.3s ease;
+}
+
+.navbar-complaint:hover .complaint-icon {
+  color: #EF4444;
+}
+
+@media (max-width: 768px) {
+  .navbar-complaint {
+    margin: 10px 0;
+  }
+}
 
 @media (max-width: 1200px) {
   .navbar .logo {

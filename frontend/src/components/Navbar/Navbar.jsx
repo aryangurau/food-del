@@ -4,7 +4,7 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
-import { FaSearch, FaShoppingCart, FaBell, FaUser } from "react-icons/fa";
+import { FaSearch, FaShoppingCart, FaBell, FaUser , FaExclamationCircle} from "react-icons/fa";
 import Profile from '../Profile/Profile';
 
 const Navbar = ({ setShowLogin }) => {
@@ -215,6 +215,11 @@ const Navbar = ({ setShowLogin }) => {
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
+            </Link>
+          </div>
+          <div className="navbar-complaint">
+            <Link to="/complaint" onClick={() => setIsMobileMenuOpen(false)}>
+              <FaExclamationCircle className="complaint-icon" />
             </Link>
           </div>
 

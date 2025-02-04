@@ -125,6 +125,7 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/verify" element={<Verify />} />
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/complaint" element={<ComplaintBox userId={user.id} />} />
           <Route path="/verify-otp" element={<VerifyForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
