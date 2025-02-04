@@ -37,6 +37,7 @@ const getRandomMessage = (type, itemName) => {
 
 const StoreContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState({});
+  const [buyNowItem, setBuyNowItem] = useState(null);
   const url = "http://localhost:4000";
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(() => {
@@ -45,6 +46,25 @@ const StoreContextProvider = ({ children }) => {
   });
   const [food_list, setFoodList] = useState([]);
 
+
+
+ // Function to prepare item for direct purchase
+ const prepareBuyNow = (itemId) => {
+  const item = food_list.find(item => item._id === itemId);
+  if (item) {
+    setBuyNowItem({
+      ...item,
+      quantity: 1
+    });
+    return true;
+  }
+  return false;
+};
+
+// Function to clear buy now item
+const clearBuyNowItem = () => {
+  setBuyNowItem(null);
+};
 
 
   const fetchUserFromToken = () => {
@@ -83,7 +103,6 @@ const StoreContextProvider = ({ children }) => {
       setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
       toast.success(getRandomMessage('addMore', item.name));
     }
-
     // Save to localStorage
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
 
@@ -112,7 +131,7 @@ const StoreContextProvider = ({ children }) => {
     }
   };
 
-  
+
 
   const removeFromCart = async (itemId) => {
     const item = food_list.find(item => item._id === itemId);
@@ -277,20 +296,37 @@ const StoreContextProvider = ({ children }) => {
     }
   };
 
+  const calculateSubtotal = () => {
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    const isBuyNow = mode === 'buy-now';
+    
+    if (isBuyNow && buyNowItem) {
+      return buyNowItem.price * buyNowItem.quantity;
+    }
+    return Object.keys(cartItems).reduce((total, itemId) => {
+      const item = food_list.find(item => item._id === itemId);
+      return total + (item?.price || 0) * cartItems[itemId];
+    }, 0);
+  };
+
   const contextValue = {
-    food_list,
     cartItems,
-    setCartItems,
     addToCart,
     removeFromCart,
-    getTotalCartAmount,
     clearCart,
     token,
     setToken,
     user,
     setUser,
+    food_list,
+    setFoodList,
     url,
-    formatPrice
+    prepareBuyNow,
+    clearBuyNowItem,
+    buyNowItem,
+    getTotalCartAmount,
+    formatPrice,
+    calculateSubtotal
   };
 
   return (

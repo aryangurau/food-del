@@ -8,15 +8,16 @@ import { StoreContext } from "../../context/StoreContext";
 
 
 const FoodItem = ({ id, name, price, description, image }) => {
-  const { cartItems, addToCart, removeFromCart, url } =
+  const { cartItems, addToCart, removeFromCart, url, prepareBuyNow } =
     useContext(StoreContext);
     const [showPopup, setShowPopup] = useState(false);
     const navigate = useNavigate();
 
     const handleBuyNow = () => {
-      addToCart(id);
-      navigate("/orders");
-      setShowPopup(false);
+      if (prepareBuyNow(id)) {
+        setShowPopup(false);
+        navigate("/place-order?mode=buy-now");
+      }
     };
 
   return (
