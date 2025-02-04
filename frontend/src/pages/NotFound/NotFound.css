@@ -10,7 +10,7 @@
   padding: 20px;
 }
 
-.plate {
+.not-found-container .plate {
   width: 200px;
   height: 200px;
   background: #ffffff;
@@ -23,13 +23,13 @@
   animation: float 3s ease-in-out infinite;
 }
 
-.burger {
+.not-found-container .burger {
   position: relative;
   width: 140px;
   height: 140px;
 }
 
-.bun-top {
+.not-found-container .bun-top {
   position: absolute;
   top: 0;
   width: 140px;
@@ -39,7 +39,7 @@
   animation: bounce 1s ease-in-out infinite;
 }
 
-.lettuce {
+.not-found-container .lettuce {
   position: absolute;
   top: 45px;
   width: 130px;
@@ -49,7 +49,7 @@
   left: 5px;
 }
 
-.cheese {
+.not-found-container .cheese {
   position: absolute;
   top: 60px;
   width: 130px;
@@ -59,7 +59,7 @@
   left: 5px;
 }
 
-.patty {
+.not-found-container .patty {
   position: absolute;
   top: 75px;
   width: 130px;
@@ -69,7 +69,7 @@
   left: 5px;
 }
 
-.bun-bottom {
+.not-found-container .bun-bottom {
   position: absolute;
   bottom: 0;
   width: 140px;
@@ -78,12 +78,12 @@
   border-radius: 15px 15px 140px 140px;
 }
 
-.not-found-content {
+.not-found-container .not-found-content {
   text-align: center;
   z-index: 1;
 }
 
-.not-found-content h1 {
+.not-found-container .not-found-content h1 {
   font-size: 8rem;
   font-weight: 900;
   color: #ef4444;
@@ -92,25 +92,25 @@
   text-shadow: 3px 3px 0 #fecaca;
 }
 
-.zero {
+.not-found-container .not-found-content .zero {
   display: inline-block;
   animation: bounce 2s ease infinite;
 }
 
-.not-found-content h2 {
+.not-found-container .not-found-content h2 {
   font-size: 2.5rem;
   color: #1f2937;
   margin: 10px 0;
 }
 
-.not-found-content p {
+.not-found-container .not-found-content p {
   color: #6b7280;
   margin-bottom: 30px;
   font-size: 1.2rem;
   max-width: 500px;
 }
 
-.home-button {
+.not-found-container .home-button {
   display: inline-flex;
   align-items: center;
   background-color: #ef4444;
@@ -124,36 +124,36 @@
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
 }
 
-.home-button:hover {
+.not-found-container .home-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
   background-color: #dc2626;
 }
 
-.button-icon {
+.not-found-container .button-icon {
   margin-left: 10px;
   font-size: 1.2rem;
 }
 
-.floating-items {
+.not-found-container .floating-items {
   position: absolute;
   width: 100%;
   height: 100%;
   pointer-events: none;
 }
 
-.food-item {
+.not-found-container .food-item {
   position: absolute;
   font-size: 2rem;
   animation: float-random 8s linear infinite;
   opacity: 0.7;
 }
 
-.food-item:nth-child(1) { left: 10%; animation-delay: 0s; }
-.food-item:nth-child(2) { left: 30%; animation-delay: -2s; }
-.food-item:nth-child(3) { left: 50%; animation-delay: -4s; }
-.food-item:nth-child(4) { left: 70%; animation-delay: -6s; }
-.food-item:nth-child(5) { left: 90%; animation-delay: -8s; }
+.not-found-container .food-item:nth-child(1) { left: 10%; animation-delay: 0s; }
+.not-found-container .food-item:nth-child(2) { left: 30%; animation-delay: -2s; }
+.not-found-container .food-item:nth-child(3) { left: 50%; animation-delay: -4s; }
+.not-found-container .food-item:nth-child(4) { left: 70%; animation-delay: -6s; }
+.not-found-container .food-item:nth-child(5) { left: 90%; animation-delay: -8s; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
@@ -180,17 +180,17 @@
 }
 
 @media (max-width: 640px) {
-  .not-found-content h1 {
+  .not-found-container .not-found-content h1 {
     font-size: 6rem;
   }
-  .not-found-content h2 {
+  .not-found-container .not-found-content h2 {
     font-size: 2rem;
   }
-  .plate {
+  .not-found-container .plate {
     width: 150px;
     height: 150px;
   }
-  .burger {
+  .not-found-container .burger {
     width: 100px;
     height: 100px;
   }
