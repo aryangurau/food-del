@@ -1,54 +1,197 @@
-.not-found {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f9fafb;
-    padding: 20px;
+.not-found-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.plate {
+  width: 200px;
+  height: 200px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.burger {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.bun-top {
+  position: absolute;
+  top: 0;
+  width: 140px;
+  height: 60px;
+  background: #f4a460;
+  border-radius: 140px 140px 15px 15px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.lettuce {
+  position: absolute;
+  top: 45px;
+  width: 130px;
+  height: 15px;
+  background: #90ee90;
+  border-radius: 5px;
+  left: 5px;
+}
+
+.cheese {
+  position: absolute;
+  top: 60px;
+  width: 130px;
+  height: 15px;
+  background: #ffd700;
+  border-radius: 5px;
+  left: 5px;
+}
+
+.patty {
+  position: absolute;
+  top: 75px;
+  width: 130px;
+  height: 25px;
+  background: #8b4513;
+  border-radius: 5px;
+  left: 5px;
+}
+
+.bun-bottom {
+  position: absolute;
+  bottom: 0;
+  width: 140px;
+  height: 45px;
+  background: #f4a460;
+  border-radius: 15px 15px 140px 140px;
+}
+
+.not-found-content {
+  text-align: center;
+  z-index: 1;
+}
+
+.not-found-content h1 {
+  font-size: 8rem;
+  font-weight: 900;
+  color: #ef4444;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 3px 3px 0 #fecaca;
+}
+
+.zero {
+  display: inline-block;
+  animation: bounce 2s ease infinite;
+}
+
+.not-found-content h2 {
+  font-size: 2.5rem;
+  color: #1f2937;
+  margin: 10px 0;
+}
+
+.not-found-content p {
+  color: #6b7280;
+  margin-bottom: 30px;
+  font-size: 1.2rem;
+  max-width: 500px;
+}
+
+.home-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: #ef4444;
+  color: white;
+  padding: 14px 28px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+}
+
+.home-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+  background-color: #dc2626;
+}
+
+.button-icon {
+  margin-left: 10px;
+  font-size: 1.2rem;
+}
+
+.floating-items {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.food-item {
+  position: absolute;
+  font-size: 2rem;
+  animation: float-random 8s linear infinite;
+  opacity: 0.7;
+}
+
+.food-item:nth-child(1) { left: 10%; animation-delay: 0s; }
+.food-item:nth-child(2) { left: 30%; animation-delay: -2s; }
+.food-item:nth-child(3) { left: 50%; animation-delay: -4s; }
+.food-item:nth-child(4) { left: 70%; animation-delay: -6s; }
+.food-item:nth-child(5) { left: 90%; animation-delay: -8s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes float-random {
+  0% {
+    transform: translateY(-100%) rotate(0deg);
+    opacity: 0;
   }
-  
-  .not-found-content {
-    text-align: center;
-    padding: 40px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    max-width: 500px;
-    width: 100%;
+  50% {
+    opacity: 0.7;
   }
-  
-  .not-found h1 {
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .not-found-content h1 {
     font-size: 6rem;
-    font-weight: 700;
-    color: #ef4444;
-    margin: 0;
-    line-height: 1;
   }
-  
-  .not-found h2 {
+  .not-found-content h2 {
     font-size: 2rem;
-    color: #1f2937;
-    margin: 10px 0;
   }
-  
-  .not-found p {
-    color: #6b7280;
-    margin-bottom: 30px;
-    font-size: 1.1rem;
+  .plate {
+    width: 150px;
+    height: 150px;
   }
-  
-  .home-button {
-    display: inline-block;
-    background-color: #ef4444;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.2s;
+  .burger {
+    width: 100px;
+    height: 100px;
   }
-  
-  .home-button:hover {
-    background-color: #dc2626;
-  }
-  
+}

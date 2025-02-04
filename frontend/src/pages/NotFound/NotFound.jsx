@@ -4,14 +4,31 @@ import './NotFound.css';
 
 const NotFound = () => {
   return (
-    <div className="not-found">
+    <div className="not-found-container">
+      <div className="plate">
+        <div className="burger">
+          <div className="bun-top"></div>
+          <div className="lettuce"></div>
+          <div className="cheese"></div>
+          <div className="patty"></div>
+          <div className="bun-bottom"></div>
+        </div>
+      </div>
       <div className="not-found-content">
-        <h1>404</h1>
+        <h1>4<span className="zero bounce">0</span>4</h1>
         <h2>Page Not Found</h2>
-        <p>Oops! The page you're looking for doesn't exist.</p>
+        <p>Oops! Looks like this page is as missing as a burger without a bun!</p>
         <Link to="/" className="home-button">
-          Go to Home
+          <span>Back to Menu</span>
+          <div className="button-icon">🍽️</div>
         </Link>
+      </div>
+      <div className="floating-items">
+        <span className="food-item">🍕</span>
+        <span className="food-item">🍔</span>
+        <span className="food-item">🌮</span>
+        <span className="food-item">🍟</span>
+        <span className="food-item">🥤</span>
       </div>
     </div>
   );
