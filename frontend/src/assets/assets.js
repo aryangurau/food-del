@@ -1,5 +1,6 @@
 import basket_icon from "./basket_icon.png";
 import logo from "./logo.png";
+import logoo from "./logoo.gif"
 import icon from "./icon.png";
 import header_img from "./header_img.png";
 import header_banner from "./header_banner.png";
@@ -80,6 +81,7 @@ export const assets = {
   chicken,
   basket_icon,
   logo,
+  logoo,
   icon,
   header_img,
   header_banner,

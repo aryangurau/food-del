@@ -1,5 +1,5 @@
-import { useState, useContext } from "react";
-import { Routes, Route,useLocation } from "react-router-dom";
+import { useState, useContext, useEffect } from "react";
+import { Routes, Route,useLocation, useNavigate } from "react-router-dom";
 import { AppProvider } from './context/AppContext';
 import { StoreContext } from './context/StoreContext';
 import Navbar from "./components/Navbar/Navbar";
@@ -22,6 +22,7 @@ import Profile from "./pages/Profile/Profile";
 import { Toaster } from 'react-hot-toast';
 import VerifyForgotPassword from "./components/VerifyFp/VerifyForgotPassword"
 import ResetPassword from "./components/ResetPass/ResetPassword";
+import Landing from "./pages/Landing/Landing";
 
 const App = () => {
 
@@ -38,7 +39,22 @@ const App = () => {
 const AppContent = ({ showLogin, setShowLogin }) => {
   
   const { token, user} = useContext(StoreContext);
- 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+
+// Check if user has visited before
+useEffect(() => {
+  const hasVisited = localStorage.getItem('hasVisitedBefore');
+  if (hasVisited && location.pathname === '/') {
+    navigate('/home');
+  }
+}, [location, navigate]);
+
+  // dont Hide navbar on landing page
+  const showNavbar = location.pathname == '/';
+
+
 
   return (
     <>
@@ -91,11 +107,13 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           },
         }}
       />
-      {showLogin ? <LoginPopup setShowLogin={setShowLogin} /> : <></>}
-      <Navbar setShowLogin={setShowLogin} />
+       <Navbar setShowLogin={setShowLogin} />
+      {/* {showLogin ? <LoginPopup setShowLogin={setShowLogin} /> : <></>} */}
+      {/* <Navbar setShowLogin={setShowLogin} /> */}
       <div className="app">
         <Routes>
-          <Route path="/" element={<Home />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/home" element={<Home />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/wishlist" element={<Wishlist />} />
@@ -112,6 +130,8 @@ const AppContent = ({ showLogin, setShowLogin }) => {
 
         </Routes>
       </div>
+      {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
+  
       <Footer />
       {/* Chatbot - only show when logged in */}
       {token && <ChatComponent />}
