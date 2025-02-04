@@ -5,6 +5,7 @@ import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import { FaMoneyBillWave, FaMobile, FaCreditCard, FaStar, FaInfoCircle } from 'react-icons/fa';
+import LoginPopup from "../../components/LoginPopup/LoginPopup";
 
 const PAYMENT_METHODS = {
   STRIPE: 'stripe',
@@ -22,6 +23,8 @@ const PlaceOrder = () => {
     useContext(StoreContext);
   const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS.STRIPE);
   const [loading, setLoading] = useState(false);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -63,6 +66,10 @@ const PlaceOrder = () => {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+    if (!token) {
+      setShowLoginPopup(true);
+      return;
+    }
     setLoading(true);
 
     const orderItems = [];
@@ -202,6 +209,11 @@ const PlaceOrder = () => {
 
   return (
     <form onSubmit={handlePlaceOrder} className="place-order">
+      {showLoginPopup && (
+  <LoginPopup
+    setShowLogin={setShowLoginPopup}
+  />
+)}
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">

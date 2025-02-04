@@ -1,12 +1,22 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import "./Cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
+import LoginPopup from "../../components/LoginPopup/LoginPopup";
 
 const Cart = () => {
-  const { cartItems, food_list, removeFromCart, formatPrice, url } = useContext(StoreContext);
+  const { cartItems, food_list, removeFromCart, formatPrice, url, token } = useContext(StoreContext);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+
   const navigate = useNavigate();
 
+  const handleCheckout = () => {
+    if (!token) {
+      setShowLoginPopup(true);
+    } else {
+      navigate("/order");
+    }
+  };
   // Calculate totals
   const calculateSubtotal = () => {
     let total = 0;
@@ -27,6 +37,11 @@ const Cart = () => {
 
   return (
     <div className="cart">
+      {showLoginPopup && (
+  <LoginPopup
+    setShowLogin={setShowLoginPopup}
+  />
+)}
       <div className="cart-items">
         <div className="cart-items-title">
           <p>Items</p>
@@ -78,8 +93,8 @@ const Cart = () => {
               <h3>{formatPrice(total)}</h3>
             </div>
           </div>
-          <button onClick={()=>navigate("/order")}>Proceed To Checkout</button>
-        </div>
+          <button onClick={handleCheckout}>Proceed To Checkout</button>
+          </div>
         <div className="cart-promocode">
           <div>
             <p>If you have a promocode , Enter it here</p>
