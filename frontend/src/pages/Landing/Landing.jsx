@@ -101,17 +101,40 @@ const Landing = () => {
       {/* Features Section */}
       <section className="features">
         <div className="feature-card scroll-animate">
-          <div className="feature-icon delivery"></div>
+          <div className="feature-icon">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="32" fill="rgba(230, 0, 25, 0.1)"/>
+              <path d="M48 32h-2.2c-.4-4.2-3.9-7.5-8.2-7.5-1.1 0-2.1.2-3.1.6-.8-3-3.5-5.1-6.7-5.1-3.8 0-6.9 3.1-6.9 6.9 0 .4 0 .7.1 1.1H16c-2.2 0-4 1.8-4 4v8c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-8c0-2.2-1.8-4-4-4zm-20-4c1.7 0 3 1.3 3 3h-6c0-1.7 1.3-3 3-3zm7.6 4c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="#E60019"/>
+              <path d="M20 36h-2c-.6 0-1-.4-1-1s.4-1 1-1h2c.6 0 1 .4 1 1s-.4 1-1 1zm28 0h-2c-.6 0-1-.4-1-1s.4-1 1-1h2c.6 0 1 .4 1 1s-.4 1-1 1z" fill="#E60019"/>
+              <path d="M44 28h-4v-4h-4v4h-4v4h4v4h4v-4h4z" fill="#E60019"/>
+            </svg>
+          </div>
           <h3>Fastest Delivery</h3>
           <p>Get your food delivered quickly to your doorstep within 45 minutes! That's the fastest food you can get.</p>
         </div>
+
         <div className="feature-card scroll-animate">
-          <div className="feature-icon variety"></div>
+          <div className="feature-icon">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="32" fill="rgba(230, 0, 25, 0.1)"/>
+              <path d="M44 20H20c-2.2 0-4 1.8-4 4v16c0 2.2 1.8 4 4 4h24c2.2 0 4-1.8 4-4V24c0-2.2-1.8-4-4-4zM24 36c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm16 0c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z" fill="#E60019"/>
+              <path d="M24 30c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm16 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="#E60019"/>
+              <path d="M32 26c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" fill="#E60019"/>
+            </svg>
+          </div>
           <h3>So Much to Choose From</h3>
           <p>Find your favorite cuisines from thousands of restaurants we offer. Anything you crave for, we have it.</p>
         </div>
+
         <div className="feature-card scroll-animate">
-          <div className="feature-icon offers"></div>
+          <div className="feature-icon">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="32" fill="rgba(230, 0, 25, 0.1)"/>
+              <path d="M42 22H22c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V24c0-1.1-.9-2-2-2zm-16 4h12v4H26v-4zm0 8h12v4H26v-4z" fill="#E60019"/>
+              <circle cx="44" cy="24" r="8" fill="#E60019"/>
+              <text x="40" y="28" fill="white" fontSize="12" fontWeight="bold">%</text>
+            </svg>
+          </div>
           <h3>Best offers in town</h3>
           <p>The best offers and combos at the best price you can get. Grab it before it's too late!</p>
         </div>

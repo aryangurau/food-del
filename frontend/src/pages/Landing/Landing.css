@@ -392,37 +392,71 @@
     justify-content: center;
     gap: 2rem;
     flex-wrap: wrap;
-    background: white;
+    background: #fff;
   }
   
   .feature-card {
     flex: 1;
     min-width: 300px;
     max-width: 350px;
-    padding: 2rem;
+    padding: 2.5rem;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    animation: fadeInUp 0.8s ease-out;
-    animation-fill-mode: forwards;
-    opacity: 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
   }
   
-  .feature-card:nth-child(1) { animation-delay: 0.2s; }
-  .feature-card:nth-child(2) { animation-delay: 0.4s; }
-  .feature-card:nth-child(3) { animation-delay: 0.6s; }
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-color: #E60019;
+  }
   
   .feature-icon {
-    transition: transform 0.5s ease;
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
   }
   
-  .feature-card:hover .feature-icon {
-    transform: rotate(360deg) scale(1.1);
+  .feature-card:hover .feature-icon svg circle {
+    fill: rgba(230, 0, 25, 0.15);
   }
   
+  .feature-card:hover .feature-icon svg path {
+    fill: #cc0016;
+  }
+  
+  .feature-card h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  
+  .feature-card p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 0;
+    font-size: 1.0625rem;
+  }
+  
+  @media (max-width: 768px) {
+    .features {
+      padding: 4rem 1rem;
+    }
+  
+    .feature-card {
+      min-width: 100%;
+      padding: 2rem 1.5rem;
+    }
+  }
+
   /* How It Works Section */
   .how-it-works {
     padding: 5rem 2rem;
