@@ -310,6 +310,47 @@
   background-color: #f8d7da;
   color: #721c24;
 }
+.order-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cancel-order-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-order-btn:hover {
+  background-color: #dc2626;
+}
+
+.cancel-order-btn:disabled {
+  background-color: #f87171;
+  cursor: not-allowed;
+}
+
+.cancel-order-btn .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @media (max-width: 768px) {
   .my-orders {
@@ -332,4 +373,28 @@
   .order-info {
     width: 100%;
   }
+}
+
+.payment-return-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.payment-return-notice svg {
+  color: #856404;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.payment-return-notice .contact {
+  font-weight: 600;
+  color: #533f03;
 }

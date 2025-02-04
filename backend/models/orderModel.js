@@ -104,10 +104,13 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "completed", "failed"],
     default: "pending"
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  }
+  createdAt: { type: Date, default: Date.now, index: true },
+  status: { type: String, index: true },
+  
+  refundStatus: { type: String, enum: ['pending', 'completed', 'failed'] },
+refundedAt: Date,
+refundedAmount: Number,
+cancelledAt: Date
 }, { 
   strict: true,
   strictQuery: true

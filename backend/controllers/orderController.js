@@ -652,4 +652,268 @@ const updatePaymentStatus = async (req, res) => {
   }
 };
 
-export { placeOrder, placeInstantOrder, verifyOrder, userOrders, listOrders, updateStatus, updatePaymentStatus };
+// Helper function to handle refund for different payment methods
+const initiateRefund = async (order) => {
+  try {
+    const { paymentMethod, transactionId, totalAmount } = order;
+    let refundSuccess = false;
+    
+    switch(paymentMethod) {
+      case 'stripe':
+        try{
+        const refund = await stripe.refunds.create({
+          payment_intent: transactionId,
+          amount: totalAmount * 100 // Stripe expects amount in cents
+        });
+        refundSuccess = refund.status === 'succeeded';
+      }catch (error) {
+        console.error('Stripe refund error:', error);
+        throw error;
+      }
+      break;
+
+      case 'khalti':
+        // Initiate Khalti refund
+        try {
+        const khaltiResponse = await axios.post(
+          'https://khalti.com/api/v2/refund/',
+          {
+            token: transactionId,
+            amount: totalAmount
+          },
+          {
+            headers: {
+              'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`
+            }
+          }
+        );
+        refundSuccess = khaltiResponse.data.state === 'Complete';
+      } catch (error) {
+        console.error('Khalti refund error:', error);
+        throw error;
+      }
+      break;
+
+      case 'esewa':
+        try {
+          const esewaResponse = await axios.post(
+            'https://esewa.com.np/api/v1/refund',
+            {
+              transactionId,
+              amount: totalAmount
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${process.env.ESEWA_SECRET_KEY}`
+              }
+            }
+          );
+          refundSuccess = esewaResponse.data.success;
+        } catch (error) {
+          console.error('eSewa refund error:', error);
+          throw error;
+        }
+        break;
+
+      case 'fonepay':
+        try {
+          const fonepayResponse = await axios.post(
+            'https://fonepay.com/api/v1/refund',
+            {
+              transactionId,
+              amount: totalAmount
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${process.env.FONEPAY_SECRET_KEY}`
+              }
+            }
+          );
+          refundSuccess = fonepayResponse.data.success;
+        } catch (error) {
+          console.error('FonePay refund error:', error);
+          throw error;
+        }
+        break;
+
+      case 'cash':
+        // For cash payments, mark as refunded and handle manually
+        refundSuccess = true;
+        break;
+
+      default:
+        throw new Error(`Unsupported payment method: ${paymentMethod}`);
+    }
+
+     // If refund was successful, update order statistics
+     if (refundSuccess) {
+      try {
+        // Update daily revenue stats
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const stats = await orderModel.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: today },
+              status: { $ne: 'cancelled' }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$totalAmount' },
+              totalOrders: { $sum: 1 },
+              refundedAmount: {
+                $sum: {
+                  $cond: [
+                    { $eq: ['$status', 'cancelled'] },
+                    '$totalAmount',
+                    0
+                  ]
+                }
+              }
+            }
+          }
+        ]);
+
+        // Store or update the daily stats
+        await orderModel.updateOne(
+          { date: today },
+          {
+            $inc: {
+              refundedAmount: order.totalAmount,
+              totalRevenue: -order.totalAmount,
+              cancelledOrders: 1
+            }
+          },
+          { upsert: true }
+        );
+      } catch (error) {
+        console.error('Error updating revenue stats:', error);
+        // Don't throw error here as the refund was successful
+      }
+    }
+
+    return refundSuccess;
+  } catch (error) {
+    console.error('Error initiating refund:', error);
+    throw error;
+  }
+};
+
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.user._id;
+
+    // Find the order and populate user details
+    const order = await orderModel.findById(orderId).populate('userId', 'email');
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+
+    // Check if the order belongs to the user
+    if (order.userId._id.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to cancel this order"
+      });
+    }
+
+    // Check if order can be cancelled (within 5 minutes and not already cancelled/delivered)
+    const orderTime = new Date(order.createdAt);
+    const now = new Date();
+    const diffInMinutes = (now - orderTime) / (1000 * 60);
+
+    if (diffInMinutes > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Orders can only be cancelled within 5 minutes of placing"
+      });
+    }
+
+    if (order.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: "Order is already cancelled"
+      });
+    }
+
+    if (order.status === 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel a delivered order"
+      });
+    }
+
+    // Update order status to cancelled
+    order.status = 'cancelled';
+    order.cancelledAt = new Date();
+    
+   // Handle payment refund if payment was completed
+   if (order.paymentStatus === 'completed') {
+    try {
+      const refundSuccess = await initiateRefund(order);
+      if (refundSuccess) {
+        order.refundStatus = 'completed';
+        order.refundedAt = new Date();
+        order.refundedAmount = order.totalAmount;
+      } else {
+        order.refundStatus = 'failed';
+      }
+    } catch (refundError) {
+      console.error('Failed to process refund:', refundError);
+      order.refundStatus = 'failed';
+    }
+  }
+
+  await order.save();
+
+    // Get user's email from either order.address or the populated user document
+    const userEmail = order.address?.email || order.userId.email;
+
+    // Send cancellation email
+    if (userEmail) {
+      const emailContent = getOrderStatusEmailContent(order, 'cancelled');
+      try {
+        await sendEmail({
+          to: userEmail,
+          subject: 'Order Cancelled',
+          htmlMessage: emailContent
+        });
+        console.log('Cancellation email sent successfully');
+      } catch (emailError) {
+        console.error("Failed to send cancellation email:", emailError);
+      }
+    } else {
+      console.error("No email address found for order:", orderId);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully",
+      data: {
+        ...order.toObject(),
+        refundInitiated: order.paymentStatus === 'completed',
+        refundStatus: order.refundStatus,
+        refundedAmount: order.refundedAmount
+      }
+    });
+
+  } catch (error) {
+    console.error("Error cancelling order:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to cancel order",
+      error: error.message
+    });
+  }
+};
+
+
+export { placeOrder, placeInstantOrder, verifyOrder, userOrders, listOrders, updateStatus, updatePaymentStatus, cancelOrder };

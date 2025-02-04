@@ -13,7 +13,9 @@ import {
   FaTimesCircle,
   FaMoneyBill,
   FaSpinner,
-  FaCreditCard
+  FaCreditCard,
+  FaBan,
+  FaInfoCircle
 } from 'react-icons/fa';
 
 const MyOrders = () => {
@@ -21,7 +23,72 @@ const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trackingId, setTrackingId] = useState(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState(null);
   const navigate = useNavigate();
+
+  const canCancelOrder = (order) => {
+    if (!order || !order.createdAt) {
+      console.log('Invalid order data:', order);
+      return false;
+    }
+
+    const status = (order.status || 'pending').toLowerCase();
+    console.log('Order status:', status);
+    
+    if (status === 'cancelled' || status === 'delivered') {
+      console.log('Order already cancelled or delivered');
+      return false;
+    }
+
+    const orderTime = new Date(order.createdAt);
+    const now = new Date();
+    const diffInMinutes = (now - orderTime) / (1000 * 60);
+    
+    console.log('Time since order:', diffInMinutes, 'minutes');
+    return diffInMinutes <= 5;
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [url, token]);
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      setCancellingOrderId(orderId);
+      const response = await axios.post(
+        `${url}/api/order/cancel`,
+        { orderId },
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'token': token 
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Order cancelled successfully");
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === orderId 
+              ? { ...order, status: 'cancelled' }
+              : order
+          )
+        );
+      } else {
+        toast.error(response.data.message || "Failed to cancel order");
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to cancel order");
+      }
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -36,25 +103,32 @@ const MyOrders = () => {
           }
         }
       );
-
-      if (response.data.success) {
-        console.log('Orders data:', response.data.data);
-        setOrders(response.data.data);
+if (response.data.success) {
+        const ordersData = response.data.data;
+        console.log('Orders data:', ordersData);
+        
+        // Add cancellation eligibility check for each order
+        ordersData.forEach(order => {
+          const canCancel = canCancelOrder(order);
+          console.log(`Order ${order._id} can be cancelled:`, canCancel);
+        });
+        
+        setOrders(ordersData);
       } else {
         toast.error(response.data.message || "Failed to fetch orders");
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
       if (error.response?.status === 401) {
-        toast.error("Please login to view your orders");
-        navigate("/login");
+        navigate('/login');
       } else {
-        toast.error("Failed to fetch orders");
+        toast.error(error.response?.data?.message || "Failed to fetch orders");
       }
     } finally {
       setLoading(false);
     }
   };
+  
 
   const trackOrder = async (orderId) => {
     try {
@@ -91,7 +165,7 @@ const MyOrders = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch(status.toLowerCase()) {
+    switch(status || 'pending'.toLowerCase()) {
       case 'pending':
         return <FaClock />;
       case 'preparing':
@@ -165,10 +239,19 @@ const MyOrders = () => {
 
   return (
     <div className="my-orders">
+
+
       <div className="my-orders-header">
         <img src={assets.chicken} alt="Orders" className="header-icon" />
         <h2>My Orders</h2>
       </div>
+      <div className="payment-return-notice">
+                    <FaInfoCircle />
+                    <div>
+                     Cancelled Orders Payment will be returned within 24 hours. For inquiries, call us at{' '}
+                      <span className="contact">05656388493</span>
+                    </div>
+                    </div>
       <div className="container">
         {orders.map((order) => (
           <div key={order._id} className="my-orders-order">
@@ -200,6 +283,42 @@ const MyOrders = () => {
                     </span>
                   ))}
                 </div>
+
+            <div className="order-meta">
+                  <div className="order-status">
+                    {/* <span className={`status-icon ${(order.status || 'pending').toLowerCase()}`}>
+                      {getStatusIcon(order.status || 'pending')}
+                    </span> */}
+                    {/* <span className="status-text">{order.status || 'Pending'}</span> */}
+                  </div>
+                  <div className="order-actions">
+                    {canCancelOrder(order) && (order.status || 'pending').toLowerCase() !== 'cancelled' && (
+                      <button 
+                        className="cancel-order-btn"
+                        onClick={() => handleCancelOrder(order._id)}
+                        disabled={cancellingOrderId === order._id}
+                      >
+                        {cancellingOrderId === order._id ? (
+                          <FaSpinner className="spinner" />
+                        ) : (
+                          <><FaBan /> Cancel Order</>
+                        )}
+                      </button>
+                    )}
+                    {/* <button
+                      className="track-order-btn"
+                      onClick={() => trackOrder(order._id)}
+                      disabled={trackingId === order._id}
+                    >
+                      {trackingId === order._id ? (
+                        <FaSpinner className="spinner" />
+                      ) : (
+                        "Track Order"
+                      )}
+                    </button> */}
+                  </div>
+                </div>
+                
                 <p className="order-amount">
                   Total: <span>{formatPrice(order.totalAmount)}</span>
                 </p>
@@ -214,7 +333,7 @@ const MyOrders = () => {
               </div>
             </div>
             <div className="order-status">
-              <div className={`status ${order.status.toLowerCase().replace(' ', '')}`}>
+              <div className={`status ${order.status || 'pending'.toLowerCase().replace(' ', '')}`}>
                 {getStatusIcon(order.status)}
                 <span>{order.status}</span>
               </div>

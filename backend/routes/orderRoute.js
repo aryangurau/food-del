@@ -8,6 +8,7 @@ import {
   updateStatus,
   userOrders,
   verifyOrder,
+  cancelOrder,
 } from "../controllers/orderController.js";
 
 const orderRouter = express.Router();
@@ -18,6 +19,7 @@ orderRouter.get("/verify", verifyOrder); // Changed to GET since we're using que
 orderRouter.post("/userorders", authMiddleware, userOrders);
 orderRouter.get("/list", listOrders);
 orderRouter.post("/status", updateStatus);
+orderRouter.post("/cancel", authMiddleware, cancelOrder);
 
 // Track order status
 orderRouter.post("/track", authMiddleware, async (req, res) => {
