@@ -39,6 +39,29 @@
   color: white;
 }
 
+.footer-contact {
+  margin: 1rem 0;
+}
+
+.footer-contact h2 {
+  margin-bottom: 1rem;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.contact-icon {
+  font-size: 1rem;
+  color: #ff4e4e;
+}
+
 .developer-list {
   display: flex;
   flex-direction: column;
@@ -73,6 +96,10 @@
   color: #d9d9d9;
   font-size: 15px;
   white-space: nowrap;
+}
+
+.footer-social-icons {
+  margin-top: 0.5rem;
 }
 
 .footer-social-icons img {

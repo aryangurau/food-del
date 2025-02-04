@@ -1,4 +1,5 @@
 import { assets } from "../../assets/assets";
+import { FaPhone, FaEnvelope } from 'react-icons/fa';
 import "./Footer.css";
 const Footer = () => {
   return (
@@ -12,6 +13,16 @@ const Footer = () => {
             of cuisines, we ensure a seamless dining experience. Our commitment to quality 
             service and customer satisfaction makes us your trusted partner in food delivery.
           </p>
+          <div className="footer-contact">
+            <div className="contact-item">
+              <FaPhone className="contact-icon" />
+              <span>+977 9809241991</span>
+            </div>
+            <div className="contact-item">
+              <FaEnvelope className="contact-icon" />
+              <span>foodapp@gmail.com</span>
+            </div>
+          </div>
           <div className="footer-social-icons">
             <img src={assets.facebook_icon} alt="" />
             <img src={assets.twitter_icon} alt="" />
