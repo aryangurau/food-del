@@ -87,7 +87,7 @@ const Navbar = ({ setShowLogin }) => {
     <div className="navbar-container">
       <div className="navbar">
         <Link to="/" onClick={() => handleMenuClick("home")}>
-          <img src={assets.logoo} alt="" className="logo" />
+          <img src={assets.icon} alt="" className="logo" />
         </Link>
 
         <ul className="navbar-menu">

@@ -8,9 +8,9 @@ const Footer = () => {
         <div className="footer-content-left">
           <img src={assets.icon} alt="" className="icon" />
           <p>
-            Welcome to Pathao Khaja, your premier food delivery destination, bringing delicious meals right to 
-            your doorstep. With real-time tracking, secure payments, and a wide selection 
-            of cuisines, we ensure a seamless dining experience. Our commitment to quality 
+            Welcome to Pathao Khaja, your premier food delivery destination, bringing delicious meals right to
+            your doorstep. With real-time tracking, secure payments, and a wide selection
+            of cuisines, we ensure a seamless dining experience. Our commitment to quality
             service and customer satisfaction makes us your trusted partner in food delivery.
           </p>
           <div className="footer-contact">
@@ -43,18 +43,18 @@ const Footer = () => {
           <div className="developer-list">
             <div className="developer-item">
               <img src={assets.aryan} alt="Aryan Gurau" className="developer-image" />
-              <span>Aryan Gurau</span>
+              <span>Durga Pd Gurau</span>
             </div>
             <div className="developer-item">
-              <img src={assets.kiran} alt="Kiran Devkota" className="developer-image" />
+              <img src={assets.kiran1} alt="Kiran Devkota" className="developer-image" />
               <span>Kiran Devkota</span>
             </div>
             <div className="developer-item">
-              <img src={assets.avishek} alt="Avishek Dawadi" className="developer-image" />
+              <img src={assets.avishek1} alt="Avishek Dawadi" className="developer-image" />
               <span>Avishek Dawadi</span>
             </div>
             <div className="developer-item">
-              <img src={assets.shikha} alt="Shikha Shrestha" className="developer-image" />
+              <img src={assets.shikha1} alt="Shikha Shrestha" className="developer-image" />
               <span>Shikha Shrestha</span>
             </div>
           </div>

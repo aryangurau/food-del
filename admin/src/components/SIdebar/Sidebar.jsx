@@ -22,7 +22,7 @@ const Sidebar = () => {
           <p>Orders</p>
         </NavLink>
         <NavLink to="/users" className="sidebar-option">
-          <img src={assets.profile_image} alt="" />
+          <img src={assets.profile_icon} alt="" />
           <p>Users</p>
         </NavLink>
 

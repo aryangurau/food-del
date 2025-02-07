@@ -24,7 +24,7 @@ import VerifyForgotPassword from "./components/VerifyFp/VerifyForgotPassword"
 import ResetPassword from "./components/ResetPass/ResetPassword";
 import Landing from "./pages/Landing/Landing";
 import NotFound from './pages/NotFound/NotFound';
-
+import { Navigate } from 'react-router-dom';
 const App = () => {
 
   const [showLogin, setShowLogin] = useState(false);
@@ -126,7 +126,12 @@ const AppContent = ({ showLogin, setShowLogin }) => {
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/complaint" element={<ComplaintBox userId={user.id} />} />
+          <Route 
+            path="/complaint" 
+            element={
+              user ? <ComplaintBox userId={user.id} /> : <Navigate to="/login" state={{ from: '/complaint' }} />
+            } 
+          />
           <Route path="/verify-otp" element={<VerifyForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
          

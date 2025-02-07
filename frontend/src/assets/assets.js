@@ -78,12 +78,18 @@ import kiran from "./developers/kiran.png";
 import avishek from "./developers/avishek.png";
 import shikha from "./developers/shikha.png";
 import chicken from "./chicken.png";
+import kiran1 from "./developers/kiran1.png";
+import avishek1 from "./developers/avishek1.png";
+import shikha1 from "./developers/shikha1.png";
 export const assets = {
   aryan,
   kiran,
   avishek,
   shikha,
   bot,
+  kiran1,
+  avishek1,
+  shikha1,
   esewa,
   khalti,
   fonepay,
