@@ -35,7 +35,7 @@ const Footer = () => {
             <li>Home</li>
             <li>About us</li>
             <li>Delivery</li>
-            <li>Privacy policy</li>
+            <li> Privacy policy</li>
           </ul>
         </div>
         <div className="footer-content-right">

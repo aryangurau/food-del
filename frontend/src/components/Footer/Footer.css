@@ -15,6 +15,11 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 80px;
+
+}
+
+.footer-content p{
+  color: #ff4e4e;
 }
 
 .footer-content-left,
@@ -114,6 +119,10 @@
   background-color: grey;
   border: none;
 }
+.footer-copyright{
+  color: blueviolet;
+
+}
 
 @media (max-width: 750px) {
   .footer-content {
@@ -124,6 +133,9 @@
   
   .footer-copyright {
     text-align: center;
+  }
+  .footer-content p{
+    color: #ff4e4e;
   }
   
   .developer-list {
