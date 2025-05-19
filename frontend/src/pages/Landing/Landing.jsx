@@ -97,7 +97,7 @@ const Landing = () => {
             <img src={assets.burger} alt="Food Collage" />
           </div>
           <div className="hero-image scroll-animate">
-            <img src={assets.chicken} alt="Food Collage" />
+            <img src={assets.burger} alt="Food Collage" />
           </div>
         </div>
       </section>

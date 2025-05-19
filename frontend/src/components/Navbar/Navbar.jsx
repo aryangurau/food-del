@@ -117,7 +117,8 @@ const Navbar = ({ setShowLogin }) => {
             onClick={() => handleMenuClick("contact-us")}
             className={menu === "contact-us" ? "active" : ""}
           >
-            Contact Us
+            Contact her 
+          
           </a>
         </ul>
 
