@@ -55,20 +55,20 @@ const Landing = () => {
       <section className="hero-main">
            {/* Floating Food Animations */}
            <div className="floating-food pizza" style={{ top: '10%', left: '10%' }}>
-             {/* <svg viewBox="0 0 100 100" width="60" height="60">
+              <svg viewBox="0 0 100 100" width="60" height="60">
                <circle cx="50" cy="50" r="45" fill="#ff6b6b"/>
                <circle cx="50" cy="50" r="40" fill="#ff8787"/>
                <circle cx="35" cy="35" r="8" fill="#ffd43b"/>
                <circle cx="60" cy="40" r="8" fill="#ffd43b"/>
                <circle cx="45" cy="60" r="8" fill="#ffd43b"/>
-             </svg> */}
+             </svg> 
            </div>
            <div className="floating-food burger" style={{ top: '20%', right: '15%' }}>
-             {/* <svg viewBox="0 0 100 100" width="60" height="60">
+             <svg viewBox="0 0 100 100" width="60" height="60">
                <rect x="20" y="30" width="60" height="40" rx="5" fill="#ffa94d"/>
                <rect x="15" y="45" width="70" height="10" rx="5" fill="#74b816"/>
                <rect x="25" y="40" width="50" height="5" fill="#ff8787"/>
-             </svg> */}
+             </svg> 
            </div>
            <div className="floating-food fries" style={{ bottom: '15%', left: '20%' }}>
              {/* <svg viewBox="0 0 100 100" width="60" height="60">
@@ -97,7 +97,7 @@ const Landing = () => {
             <img src={assets.burger} alt="Food Collage" />
           </div>
           <div className="hero-image scroll-animate">
-            <img src={assets.burger} alt="Food Collage" />
+            <img src={assets.chicken} alt="Food Collage" />
           </div>
         </div>
       </section>
